@@ -1,0 +1,46 @@
+import { Link, Outlet } from "react-router-dom";
+
+import { useAuthStore } from "../store/authStore";
+
+const EmployeeLayout = () => {
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
+  return (
+    <div className="page-shell">
+      <div className="surface p-6">
+        <header className="flex flex-col gap-4 border-b border-brand-100 pb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">
+              EMPLOYEE DASHBOARD
+            </p>
+            <h1 className="text-2xl font-bold text-brand-900">Daily Attendance Workspace</h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Signed in as {user?.name || "Employee"} ({user?.role || "EMPLOYEE"})
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Link
+              to="/gate"
+              className="rounded-lg border border-brand-300 px-4 py-2 text-sm font-medium text-brand-700"
+            >
+              Gate
+            </Link>
+            <button
+              type="button"
+              onClick={logout}
+              className="rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-600"
+            >
+              Logout
+            </button>
+          </div>
+        </header>
+        <main className="pt-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default EmployeeLayout;

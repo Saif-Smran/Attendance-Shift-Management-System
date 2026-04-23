@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  HR
+  EMPLOYEE
+  SECURITY
+}
+
+enum EmployeeCategory {
+  WORKER
+  STAFF
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+}
+
+enum ShiftType {
+  GENERAL_DAY
+  NIGHT
+  SECURITY_DAY
+  SECURITY_NIGHT
+  FRIDAY
+  RAMADAN_DAY
+  RAMADAN_NIGHT
+}
+
+enum OvertimeMethod {
+  AFTER_8_HOURS
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  EXCESSIVE_LATE
+  EARLY_EXIT
+  EARLY_EXIT_OVER_1HR
+  ABSENT
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id               String            @id @default(uuid())
+  employeeCode     String            @unique
+  employeeCategory EmployeeCategory?
+  name             String
+  email            String            @unique
+  password         String
+  role             Role
+  departmentId     String?
+  shiftId          String?
+  status           UserStatus        @default(PENDING)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  department            Department?        @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  shift                 Shift?             @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  rosters               Roster[]
+  attendances           Attendance[]
+  leaveApplications     LeaveApplication[] @relation("UserLeaveApplications")
+  reviewedLeaves        LeaveApplication[] @relation("LeaveReviewer")
+  reviewedRegistrations Registration[]     @relation("RegistrationReviewer")
+
+  @@index([role])
+  @@index([status])
+  @@index([departmentId])
+  @@index([shiftId])
+}
+
+model Department {
+  id        String         @id @default(uuid())
+  name      String         @unique
+  createdAt DateTime       @default(now())
+  users     User[]
+  requests  Registration[]
+}
+
+model Shift {
+  id                   String    @id @default(uuid())
+  name                 String
+  type                 ShiftType
+  startTime            String
+  endTime              String
+  breakDurationMinutes Int
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  users   User[]
+  rosters Roster[]
+
+  @@unique([name, type])
+}
+
+model AttendanceRule {
+  id                        String         @id @default(uuid())
+  lateThresholdMinutes      Int            @default(15)
+  excessiveLateAfterMinutes Int            @default(15)
+  tiffinBreakMinutes        Int            @default(60)
+  earlyExitFlagStartMinutes Int            @default(60)
+  earlyExitFlagEndMinutes   Int            @default(30)
+  maxRosterDays             Int            @default(14)
+  securityOT                Boolean        @default(false)
+  otMethod                  OvertimeMethod @default(AFTER_8_HOURS)
+  ramadanActive             Boolean        @default(false)
+  ramadanStartDate          DateTime?
+  ramadanEndDate            DateTime?
+  iftarTime                 String?
+  sehriStart                String         @default("04:00")
+  sehriEnd                  String         @default("05:00")
+  iftarConflictStart        String         @default("05:30")
+  iftarConflictEnd          String         @default("06:30")
+  effectiveFrom             DateTime       @default(now())
+  createdAt                 DateTime       @default(now())
+
+  attendances Attendance[]
+
+  @@index([effectiveFrom])
+}
+
+model Registration {
+  id                        String             @id @default(uuid())
+  name                      String
+  email                     String             @unique
+  password                  String
+  departmentId              String?
+  requestedRole             Role
+  requestedEmployeeCategory EmployeeCategory?
+  status                    RegistrationStatus @default(PENDING)
+  reviewedBy                String?
+  reviewedAt                DateTime?
+  createdAt                 DateTime           @default(now())
+
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  reviewer   User?       @relation("RegistrationReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([departmentId])
+  @@index([reviewedBy])
+}
+
+model Roster {
+  id        String   @id @default(uuid())
+  userId    String
+  shiftId   String
+  date      DateTime
+  isRamadan Boolean  @default(false)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, date])
+  @@index([date])
+  @@index([shiftId, date])
+}
+
+model Attendance {
+  id                String           @id @default(uuid())
+  userId            String
+  date              DateTime
+  clockIn           DateTime?
+  clockOut          DateTime?
+  status            AttendanceStatus
+  lateMinutes       Int              @default(0)
+  earlyExitMinutes  Int              @default(0)
+  missedHours       Float            @default(0)
+  otHours           Float            @default(0)
+  sehriBreakApplied Boolean          @default(false)
+  iftarBreakApplied Boolean          @default(false)
+  isRamadan         Boolean          @default(false)
+  flagged           Boolean          @default(false)
+  flagReasons       String[]
+  ruleId            String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule AttendanceRule @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, date])
+  @@index([status])
+  @@index([date])
+  @@index([ruleId])
+}
+
+model LeaveApplication {
+  id         String      @id @default(uuid())
+  userId     String
+  fromDate   DateTime
+  toDate     DateTime
+  reason     String
+  status     LeaveStatus @default(PENDING)
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime    @default(now())
+
+  user     User  @relation("UserLeaveApplications", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("LeaveReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([fromDate, toDate])
+  @@index([reviewedBy])
+}
