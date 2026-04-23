@@ -10,6 +10,13 @@ Monorepo foundation for attendance, roster, shift, and leave management with rol
 - Auth: JWT (access + refresh)
 - Frontend: React, Vite, TailwindCSS, Zustand
 
+## Team Members
+
+- A H M Saif Smran
+- Md. Saikhul Hasan Saif
+- Mohammed Mustavi Araf
+- Sadia Jannat Moon
+
 ## Project Structure
 
 - `backend/` - API server, Prisma schema, auth middleware, utilities
@@ -67,16 +74,26 @@ Frontend default URL: `http://localhost:5173`
 - Prisma schema with all required models and enums
 - Utility functions for API response, async handler, employee ID generation
 - JWT auth middleware and role authorization middleware
+- Auth module endpoints:
+   - `/api/auth/login`
+   - `/api/auth/register`
+   - `/api/auth/refresh`
+   - `/api/auth/logout`
+   - `/api/auth/departments`
+- Gate attendance endpoints:
+   - `/api/gate/clockin`
+   - `/api/gate/clockout`
 - Express app bootstrap with global error handling
 - React routing with protected role-based sections:
   - `/dashboard/admin/*` (ADMIN)
   - `/dashboard/hr/*` (HR)
   - `/dashboard/employee/*` (EMPLOYEE + SECURITY)
+- Gate kiosk page with live clock and auto clock-in/clock-out flow
+- Real login/register frontend integration with backend APIs
 
 ## Notes
 
-- Login/Register pages are scaffolded UI-level flows for now.
-- Backend module folders are created and ready for endpoint implementation.
+- Auth and gate attendance modules are implemented and wired under `/api`.
 - Backend startup now includes retry logic for PostgreSQL and Redis.
 - Graceful shutdown now has a timeout guard to prevent hanging exits.
 - Employee code generation supports:
@@ -84,7 +101,7 @@ Frontend default URL: `http://localhost:5173`
 
 ## Next Recommended Steps
 
-1. Add real auth endpoints (`login`, `refresh`, `logout`).
-2. Implement module routes and controllers for attendance, roster, leave.
+1. Implement registration approval workflow (approve/reject -> create User).
+2. Implement module routes and controllers for roster, leaves, reports, shifts.
 3. Add validation layer (Zod or Joi) and request-level DTOs.
 4. Add tests (unit + integration + API smoke tests).

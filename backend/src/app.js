@@ -7,6 +7,8 @@ import { connectRedis, getRedisClient } from "./config/redis.js";
 import { authenticate } from "./middlewares/authenticate.js";
 import { authorize } from "./middlewares/authorize.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import authRouter from "./modules/auth/auth.routes.js";
+import gateRouter from "./modules/attendance/gate.routes.js";
 import { success } from "./utils/apiResponse.js";
 
 const app = express();
@@ -92,6 +94,9 @@ app.get("/health/ready", async (req, res) => {
 app.get("/api/v1", (req, res) => {
   return success(res, null, "API is running");
 });
+
+app.use("/api/auth", authRouter);
+app.use("/api/gate", gateRouter);
 
 app.get("/api/v1/profile", authenticate, (req, res) => {
   return success(res, req.user, "Authenticated user profile");
