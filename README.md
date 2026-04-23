@@ -1,4 +1,4 @@
-# Ha-Meem Group Attendance & Shift Management System
+# Attendance & Shift Management System
 
 Monorepo foundation for attendance, roster, shift, and leave management with role-based access.
 
