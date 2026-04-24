@@ -1,4 +1,4 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
 import { useAuthStore } from "../store/authStore";
 
@@ -33,6 +33,33 @@ const HRLayout = () => {
             </button>
           </div>
         </header>
+        <nav className="mt-4 flex flex-wrap gap-2 border-b border-brand-100 pb-4">
+          <NavLink
+            to="/dashboard/hr"
+            end
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-700 text-white"
+                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
+              }`
+            }
+          >
+            Home
+          </NavLink>
+          <NavLink
+            to="/dashboard/hr/registrations"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-700 text-white"
+                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
+              }`
+            }
+          >
+            Registrations
+          </NavLink>
+        </nav>
         <main className="pt-6">
           <Outlet />
         </main>

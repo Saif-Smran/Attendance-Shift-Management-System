@@ -75,14 +75,25 @@ Frontend default URL: `http://localhost:5173`
 - Utility functions for API response, async handler, employee ID generation
 - JWT auth middleware and role authorization middleware
 - Auth module endpoints:
-   - `/api/auth/login`
-   - `/api/auth/register`
-   - `/api/auth/refresh`
-   - `/api/auth/logout`
-   - `/api/auth/departments`
+  - `/api/auth/login`
+  - `/api/auth/register`
+  - `/api/auth/refresh`
+  - `/api/auth/logout`
+  - `/api/auth/departments`
 - Gate attendance endpoints:
-   - `/api/gate/clockin`
-   - `/api/gate/clockout`
+  - `/api/gate/clockin`
+  - `/api/gate/clockout`
+- Employee management endpoints (ADMIN):
+  - `GET /api/employees` - List all employees with filters
+  - `POST /api/employees` - Create a new employee
+  - `PUT /api/employees/:id` - Update employee details
+  - `DELETE /api/employees/:id` - Soft delete an employee
+  - `PATCH /api/employees/:id/role` - Change employee role
+  - `PATCH /api/employees/:id/status` - Change employee status
+- Registration management endpoints (HR):
+  - `GET /api/registrations` - List all registrations with filters
+  - `PATCH /api/registrations/:id/approve` - Approve a registration
+  - `PATCH /api/registrations/:id/reject` - Reject a registration
 - Express app bootstrap with global error handling
 - React routing with protected role-based sections:
   - `/dashboard/admin/*` (ADMIN)
@@ -90,6 +101,8 @@ Frontend default URL: `http://localhost:5173`
   - `/dashboard/employee/*` (EMPLOYEE + SECURITY)
 - Gate kiosk page with live clock and auto clock-in/clock-out flow
 - Real login/register frontend integration with backend APIs
+- Admin dashboard for full employee lifecycle management (create, view, update, delete, role/status change).
+- HR dashboard for registration request management (approve, reject).
 
 ## Notes
 
@@ -101,7 +114,6 @@ Frontend default URL: `http://localhost:5173`
 
 ## Next Recommended Steps
 
-1. Implement registration approval workflow (approve/reject -> create User).
-2. Implement module routes and controllers for roster, leaves, reports, shifts.
-3. Add validation layer (Zod or Joi) and request-level DTOs.
-4. Add tests (unit + integration + API smoke tests).
+1. Implement module routes and controllers for roster, leaves, reports, shifts.
+2. Add validation layer (Zod or Joi) and request-level DTOs.
+3. Add tests (unit + integration + API smoke tests).

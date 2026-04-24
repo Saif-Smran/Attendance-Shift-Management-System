@@ -3,9 +3,11 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import AdminLayout from "./layouts/AdminLayout";
 import EmployeeLayout from "./layouts/EmployeeLayout";
 import HRLayout from "./layouts/HRLayout";
+import AdminEmployees from "./pages/admin/Employees";
 import AdminHome from "./pages/admin/Home";
 import EmployeeHome from "./pages/employee/Home";
 import HRHome from "./pages/hr/Home";
+import HRRegistrations from "./pages/hr/Registrations";
 import Gate from "./pages/Gate";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -22,6 +24,7 @@ const App = () => {
       <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
         <Route path="/dashboard/admin" element={<AdminLayout />}>
           <Route index element={<AdminHome />} />
+          <Route path="employees" element={<AdminEmployees />} />
           <Route path="*" element={<Navigate to="/dashboard/admin" replace />} />
         </Route>
       </Route>
@@ -29,6 +32,7 @@ const App = () => {
       <Route element={<ProtectedRoute allowedRoles={["HR"]} />}>
         <Route path="/dashboard/hr" element={<HRLayout />}>
           <Route index element={<HRHome />} />
+          <Route path="registrations" element={<HRRegistrations />} />
           <Route path="*" element={<Navigate to="/dashboard/hr" replace />} />
         </Route>
       </Route>

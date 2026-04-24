@@ -148,6 +148,7 @@ model Registration {
   status                    RegistrationStatus @default(PENDING)
   reviewedBy                String?
   reviewedAt                DateTime?
+  rejectionReason           String?
   createdAt                 DateTime           @default(now())
 
   department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)

@@ -36,7 +36,9 @@ Public routes:
 
 Protected routes:
 - `/dashboard/admin` (ADMIN)
+  - `/dashboard/admin/employees` - Employee Management
 - `/dashboard/hr` (HR)
+  - `/dashboard/hr/registrations` - Registration Management
 - `/dashboard/employee` (EMPLOYEE, SECURITY)
 
 ## Auth Flow
@@ -48,6 +50,27 @@ Protected routes:
   - HR -> `/dashboard/hr`
   - EMPLOYEE -> `/dashboard/employee`
   - SECURITY -> `/dashboard/employee`
+
+## Employee Management (Admin)
+
+- The `/dashboard/admin/employees` page provides a full-featured interface for managing employees.
+- Admins can:
+  - View all employees in a paginated table.
+  - Filter employees by status (`ACTIVE`, `INACTIVE`).
+  - Search for employees by name or code.
+  - Create new employees, which generates a temporary password.
+  - Edit existing employee details.
+  - Change an employee's role or status.
+  - Soft delete an employee (sets status to `INACTIVE`).
+
+## Registration Management (HR)
+
+- The `/dashboard/hr/registrations` page allows HR staff to manage pending user registrations.
+- HR can:
+  - View all registrations in a paginated table.
+  - Filter registrations by status (`PENDING`, `APPROVED`, `REJECTED`).
+  - Approve a pending registration, which creates a new user and employee.
+  - Reject a pending registration, with an optional reason.
 
 ## Register Flow
 

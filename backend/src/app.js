@@ -9,6 +9,8 @@ import { authorize } from "./middlewares/authorize.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import authRouter from "./modules/auth/auth.routes.js";
 import gateRouter from "./modules/attendance/gate.routes.js";
+import employeeRouter from "./modules/employees/employee.routes.js";
+import registrationRouter from "./modules/employees/registration.routes.js";
 import { success } from "./utils/apiResponse.js";
 
 const app = express();
@@ -97,6 +99,8 @@ app.get("/api/v1", (req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/gate", gateRouter);
+app.use("/api/employees", employeeRouter);
+app.use("/api/registrations", registrationRouter);
 
 app.get("/api/v1/profile", authenticate, (req, res) => {
   return success(res, req.user, "Authenticated user profile");

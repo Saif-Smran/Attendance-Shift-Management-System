@@ -66,9 +66,27 @@ Gate endpoints are public by design and accept only:
 - `employeeCode`
 - `password`
 
+## Employee Management Endpoints (ADMIN)
+
+- `GET /api/employees`
+- `POST /api/employees`
+- `PUT /api/employees/:id`
+- `DELETE /api/employees/:id`
+- `PATCH /api/employees/:id/role`
+- `PATCH /api/employees/:id/status`
+
+## Registration Management Endpoints (HR)
+
+- `GET /api/registrations`
+- `PATCH /api/registrations/:id/approve`
+- `PATCH /api/registrations/:id/reject`
+
 ## Notes
 
 - Public registration creates a `Registration` record with `PENDING` status.
 - Login supports email or employee code.
 - Refresh tokens are stored in Redis by user id.
 - Attendance calculation runs on clock-out and updates computed attendance fields.
+- Approving a registration creates a `User` and `Employee` record.
+- Rejecting a registration updates the `Registration` status to `REJECTED` and adds a `rejectionReason`.
+- Deleting an employee is a soft delete (status is set to `INACTIVE`).
