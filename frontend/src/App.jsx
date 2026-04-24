@@ -7,7 +7,10 @@ import AdminEmployees from "./pages/admin/Employees";
 import AdminHome from "./pages/admin/Home";
 import EmployeeHome from "./pages/employee/Home";
 import HRHome from "./pages/hr/Home";
+import HRRoster from "./pages/hr/Roster";
 import HRRegistrations from "./pages/hr/Registrations";
+import HRRules from "./pages/hr/Rules";
+import HRShifts from "./pages/hr/Shifts";
 import Gate from "./pages/Gate";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -33,6 +36,9 @@ const App = () => {
         <Route path="/dashboard/hr" element={<HRLayout />}>
           <Route index element={<HRHome />} />
           <Route path="registrations" element={<HRRegistrations />} />
+          <Route path="shifts" element={<HRShifts />} />
+          <Route path="rules" element={<HRRules />} />
+          <Route path="roster" element={<HRRoster />} />
           <Route path="*" element={<Navigate to="/dashboard/hr" replace />} />
         </Route>
       </Route>

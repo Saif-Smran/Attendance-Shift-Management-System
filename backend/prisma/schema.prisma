@@ -80,6 +80,7 @@ model User {
   leaveApplications     LeaveApplication[] @relation("UserLeaveApplications")
   reviewedLeaves        LeaveApplication[] @relation("LeaveReviewer")
   reviewedRegistrations Registration[]     @relation("RegistrationReviewer")
+  attendanceRulesUpdated AttendanceRule[]  @relation("AttendanceRuleUpdatedBy")
 
   @@index([role])
   @@index([status])
@@ -131,10 +132,14 @@ model AttendanceRule {
   iftarConflictEnd          String         @default("06:30")
   effectiveFrom             DateTime       @default(now())
   createdAt                 DateTime       @default(now())
+  updatedAt                 DateTime       @updatedAt
+  updatedById               String?
 
   attendances Attendance[]
+  updatedBy   User?        @relation("AttendanceRuleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@index([effectiveFrom])
+  @@index([updatedById])
 }
 
 model Registration {

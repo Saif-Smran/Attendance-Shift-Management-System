@@ -51,7 +51,9 @@ Compose services:
 4. Validate and generate Prisma client:
    - `npm run prisma:validate`
    - `npm run prisma:generate`
-5. Start backend with automatic migration deploy:
+5. Seed default shifts:
+   - `npm run prisma:seed`
+6. Start backend with automatic migration deploy and seed:
    - `npm run dev:docker`
 
 Backend health routes:
@@ -94,6 +96,20 @@ Frontend default URL: `http://localhost:5173`
   - `GET /api/registrations` - List all registrations with filters
   - `PATCH /api/registrations/:id/approve` - Approve a registration
   - `PATCH /api/registrations/:id/reject` - Reject a registration
+- Shift management endpoints:
+   - `GET /api/shifts` - List all shifts (authenticated)
+   - `POST /api/shifts` - Create shift (ADMIN, HR)
+   - `PUT /api/shifts/:id` - Update shift (ADMIN, HR)
+   - `DELETE /api/shifts/:id` - Delete shift (ADMIN, HR)
+- Rule management endpoints:
+   - `GET /api/rules` - Get active attendance rule (authenticated)
+   - `POST /api/rules` - Create rule (ADMIN, HR)
+   - `PUT /api/rules/:id` - Update rule (ADMIN, HR)
+- Roster management endpoints:
+   - `GET /api/roster` - Get roster by date/department (ADMIN, HR)
+   - `GET /api/roster/me` - Get current user roster (authenticated)
+   - `POST /api/roster` - Assign roster by date/date-range (ADMIN, HR)
+   - `DELETE /api/roster/:id` - Delete roster entry (ADMIN, HR)
 - Express app bootstrap with global error handling
 - React routing with protected role-based sections:
   - `/dashboard/admin/*` (ADMIN)
@@ -103,6 +119,9 @@ Frontend default URL: `http://localhost:5173`
 - Real login/register frontend integration with backend APIs
 - Admin dashboard for full employee lifecycle management (create, view, update, delete, role/status change).
 - HR dashboard for registration request management (approve, reject).
+- HR shift page for inline schedule edits.
+- HR rules page with grouped policy controls and Ramadan settings.
+- HR roster page with weekly view, shift color coding, and consecutive-day warnings.
 
 ## Notes
 
@@ -111,6 +130,8 @@ Frontend default URL: `http://localhost:5173`
 - Graceful shutdown now has a timeout guard to prevent hanging exits.
 - Employee code generation supports:
   - `AD-0001`, `HR-0001`, `SG-0001`, `GW-0001`, `ST-0001`
+- Default seed now preloads seven shift templates:
+   - General Day, Ramadan Day, Night Shift, Ramadan Night, Security Day, Security Night, Friday
 
 ## Next Recommended Steps
 

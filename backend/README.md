@@ -1,4 +1,4 @@
-# Backend - Ha-Meem Attendance & Shift Management
+# Backend - Attendance & Shift Management
 
 Express + Prisma backend for authentication, gate attendance, and role-based APIs.
 
@@ -18,7 +18,9 @@ Express + Prisma backend for authentication, gate attendance, and role-based API
 4. Validate and generate Prisma client:
    - `npm run prisma:validate`
    - `npm run prisma:generate`
-5. Start in Docker-backed dev mode:
+5. Seed default shifts:
+   - `npm run prisma:seed`
+6. Start in Docker-backed dev mode:
    - `npm run dev:docker`
 
 ## Core Environment Variables
@@ -42,6 +44,7 @@ Express + Prisma backend for authentication, gate attendance, and role-based API
 - `npm run prisma:generate`
 - `npm run prisma:migrate`
 - `npm run prisma:migrate:deploy`
+- `npm run prisma:seed`
 - `npm run prisma:studio`
 
 ## Health Endpoints
@@ -81,6 +84,26 @@ Gate endpoints are public by design and accept only:
 - `PATCH /api/registrations/:id/approve`
 - `PATCH /api/registrations/:id/reject`
 
+## Shift Management Endpoints (Authenticated)
+
+- `GET /api/shifts`
+- `POST /api/shifts` (ADMIN, HR)
+- `PUT /api/shifts/:id` (ADMIN, HR)
+- `DELETE /api/shifts/:id` (ADMIN, HR)
+
+## Attendance Rule Endpoints (Authenticated)
+
+- `GET /api/rules`
+- `POST /api/rules` (ADMIN, HR)
+- `PUT /api/rules/:id` (ADMIN, HR)
+
+## Roster Endpoints
+
+- `GET /api/roster` (ADMIN, HR) - supports `date`, `department` filters
+- `GET /api/roster/me` (authenticated user)
+- `POST /api/roster` (ADMIN, HR)
+- `DELETE /api/roster/:id` (ADMIN, HR)
+
 ## Notes
 
 - Public registration creates a `Registration` record with `PENDING` status.
@@ -90,3 +113,5 @@ Gate endpoints are public by design and accept only:
 - Approving a registration creates a `User` and `Employee` record.
 - Rejecting a registration updates the `Registration` status to `REJECTED` and adds a `rejectionReason`.
 - Deleting an employee is a soft delete (status is set to `INACTIVE`).
+- Roster assignment hard-blocks with `Max 14 consecutive roster days` when an assignment would exceed the policy.
+- Rules now track `updatedBy` and `updatedAt` for HR visibility of last changes.

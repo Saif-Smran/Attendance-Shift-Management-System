@@ -11,6 +11,9 @@ import authRouter from "./modules/auth/auth.routes.js";
 import gateRouter from "./modules/attendance/gate.routes.js";
 import employeeRouter from "./modules/employees/employee.routes.js";
 import registrationRouter from "./modules/employees/registration.routes.js";
+import rosterRouter from "./modules/roster/roster.routes.js";
+import ruleRouter from "./modules/rules/rule.routes.js";
+import shiftRouter from "./modules/shifts/shift.routes.js";
 import { success } from "./utils/apiResponse.js";
 
 const app = express();
@@ -101,6 +104,9 @@ app.use("/api/auth", authRouter);
 app.use("/api/gate", gateRouter);
 app.use("/api/employees", employeeRouter);
 app.use("/api/registrations", registrationRouter);
+app.use("/api/shifts", shiftRouter);
+app.use("/api/rules", ruleRouter);
+app.use("/api/roster", rosterRouter);
 
 app.get("/api/v1/profile", authenticate, (req, res) => {
   return success(res, req.user, "Authenticated user profile");

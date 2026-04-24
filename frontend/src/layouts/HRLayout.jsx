@@ -59,6 +59,42 @@ const HRLayout = () => {
           >
             Registrations
           </NavLink>
+          <NavLink
+            to="/dashboard/hr/shifts"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-700 text-white"
+                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
+              }`
+            }
+          >
+            Shifts
+          </NavLink>
+          <NavLink
+            to="/dashboard/hr/rules"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-700 text-white"
+                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
+              }`
+            }
+          >
+            Rules
+          </NavLink>
+          <NavLink
+            to="/dashboard/hr/roster"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-700 text-white"
+                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
+              }`
+            }
+          >
+            Roster
+          </NavLink>
         </nav>
         <main className="pt-6">
           <Outlet />

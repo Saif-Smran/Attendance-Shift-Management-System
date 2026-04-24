@@ -1,4 +1,4 @@
-# Frontend - Ha-Meem Attendance & Shift Management
+# Frontend - Attendance & Shift Management
 
 React + Vite frontend with kiosk gate UI, auth screens, and role-based dashboards.
 
@@ -39,6 +39,9 @@ Protected routes:
   - `/dashboard/admin/employees` - Employee Management
 - `/dashboard/hr` (HR)
   - `/dashboard/hr/registrations` - Registration Management
+  - `/dashboard/hr/shifts` - Shift Management
+  - `/dashboard/hr/rules` - Attendance Rules
+  - `/dashboard/hr/roster` - Weekly Roster
 - `/dashboard/employee` (EMPLOYEE, SECURITY)
 
 ## Auth Flow
@@ -71,6 +74,26 @@ Protected routes:
   - Filter registrations by status (`PENDING`, `APPROVED`, `REJECTED`).
   - Approve a pending registration, which creates a new user and employee.
   - Reject a pending registration, with an optional reason.
+
+## Shift Management (HR)
+
+- The `/dashboard/hr/shifts` page lists seeded shifts in a clean editable table.
+- HR can update start time, end time, and break duration inline per shift.
+- Shift type badges are color-coded for quick visual grouping.
+
+## Attendance Rules (HR)
+
+- The `/dashboard/hr/rules` page provides one grouped policy form.
+- Sections include late rules, break rules, early exit, roster caps, OT display rules, and Ramadan settings.
+- Save uses POST for first creation and PUT for updates.
+- Page displays last updated date and updater identity.
+
+## Roster (HR)
+
+- The `/dashboard/hr/roster` page provides a weekly calendar-style roster matrix.
+- HR can assign shift by employee and date/date range.
+- Cells are color-coded by shift type.
+- A warning is shown at 12+ consecutive days; assignments exceeding 14 are blocked by backend policy.
 
 ## Register Flow
 

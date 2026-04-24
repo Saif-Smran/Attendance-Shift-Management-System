@@ -11,9 +11,10 @@
     "prisma:validate": "node ./node_modules/prisma/build/index.js validate",
     "prisma:migrate": "node ./node_modules/prisma/build/index.js migrate dev",
     "prisma:migrate:deploy": "node ./node_modules/prisma/build/index.js migrate deploy",
+    "prisma:seed": "node prisma/seed.js",
     "prisma:studio": "node ./node_modules/prisma/build/index.js studio",
-    "dev:docker": "npm run prisma:migrate:deploy && npm run dev",
-    "start:docker": "npm run prisma:migrate:deploy && npm run start"
+    "dev:docker": "npm run prisma:migrate:deploy && npm run prisma:seed && npm run dev",
+    "start:docker": "npm run prisma:migrate:deploy && npm run prisma:seed && npm run start"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

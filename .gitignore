@@ -20,9 +20,6 @@ pnpm-debug.log*
 backend/.env
 frontend/.env
 
-# Prisma
-backend/prisma/migrations/
-
 # IDE and OS
 .vscode/
 .idea/
