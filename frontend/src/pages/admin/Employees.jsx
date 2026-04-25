@@ -411,7 +411,7 @@ const Employees = () => {
     setActionLoading(true);
 
     try {
-      await axiosInstance.put(`/employees/${roleForm.id}/role`, {
+      await axiosInstance.patch(`/employees/${roleForm.id}/role`, {
         role: roleForm.role,
         employeeCategory: roleForm.role === "EMPLOYEE" ? roleForm.employeeCategory : null
       });
@@ -437,7 +437,7 @@ const Employees = () => {
     setActionLoading(true);
 
     try {
-      await axiosInstance.put(`/employees/${employee.id}/status`, {
+      await axiosInstance.patch(`/employees/${employee.id}/status`, {
         status: nextStatus
       });
       setFeedback({

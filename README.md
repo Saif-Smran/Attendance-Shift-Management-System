@@ -9,6 +9,7 @@ Monorepo foundation for attendance, roster, shift, and leave management with rol
 - Cache: Redis
 - Auth: JWT (access + refresh)
 - Frontend: React, Vite, TailwindCSS, Zustand
+- Charts: Recharts
 
 ## Team Members
 
@@ -101,6 +102,18 @@ Frontend default URL: `http://localhost:5173`
   - `GET /api/registrations` - List all registrations with filters
   - `PATCH /api/registrations/:id/approve` - Approve a registration
   - `PATCH /api/registrations/:id/reject` - Reject a registration
+- Dashboard summary endpoints:
+   - `GET /api/dashboard/admin` (ADMIN) - Admin dashboard aggregate stats
+   - `GET /api/dashboard/hr` (HR, ADMIN) - HR dashboard aggregate stats
+- Department management endpoints:
+   - `GET /api/departments` (ADMIN, HR) - List departments with employee counts
+   - `POST /api/departments` (ADMIN) - Create department
+   - `PUT /api/departments/:id` (ADMIN) - Rename department
+   - `DELETE /api/departments/:id` (ADMIN) - Delete department (blocked if employees assigned)
+- Leave management endpoints:
+   - `GET /api/leaves` (ADMIN, HR) - List leave applications
+   - `PUT /api/leaves/:id/approve` (ADMIN, HR) - Approve leave application
+   - `PUT /api/leaves/:id/reject` (ADMIN, HR) - Reject leave application
 - Shift management endpoints:
    - `GET /api/shifts` - List all shifts (authenticated)
    - `POST /api/shifts` - Create shift (ADMIN, HR)
@@ -123,7 +136,10 @@ Frontend default URL: `http://localhost:5173`
 - Gate kiosk page with live clock and auto clock-in/clock-out flow
 - Real login/register frontend integration with backend APIs
 - Admin dashboard for full employee lifecycle management (create, view, update, delete, role/status change).
+- Admin dashboard now includes live KPI cards, department attendance bar chart, flagged attendance stream, and quick action shortcuts.
+- Admin departments page now supports add/edit/delete workflows with assignment-safe delete behavior.
 - HR dashboard for registration request management (approve, reject).
+- HR dashboard now includes pending leave alerts, weekly attendance trend chart, and inline leave approval/rejection actions.
 - HR shift page for inline schedule edits.
 - HR rules page with grouped policy controls and Ramadan settings.
 - HR roster page with weekly view, shift color coding, and consecutive-day warnings.
@@ -142,6 +158,6 @@ Frontend default URL: `http://localhost:5173`
 
 ## Next Recommended Steps
 
-1. Implement remaining module routes and controllers for leaves and reports.
+1. Implement report export module and downloadable analytics views.
 2. Add validation layer (Zod or Joi) and request-level DTOs.
 3. Add tests (unit + integration + API smoke tests).

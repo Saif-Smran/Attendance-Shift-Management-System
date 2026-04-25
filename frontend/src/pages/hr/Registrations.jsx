@@ -128,7 +128,7 @@ const Registrations = () => {
     setActionLoading(true);
 
     try {
-      const response = await axiosInstance.put(
+      const response = await axiosInstance.patch(
         `/registrations/${selectedRegistration.id}/approve`
       );
       const employeeCode = response.data?.data?.employee?.employeeCode || "N/A";
@@ -165,7 +165,7 @@ const Registrations = () => {
     setActionLoading(true);
 
     try {
-      await axiosInstance.put(`/registrations/${selectedRegistration.id}/reject`, {
+      await axiosInstance.patch(`/registrations/${selectedRegistration.id}/reject`, {
         reason: rejectReason.trim()
       });
 

@@ -3,10 +3,13 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import AdminLayout from "./layouts/AdminLayout";
 import EmployeeLayout from "./layouts/EmployeeLayout";
 import HRLayout from "./layouts/HRLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDepartments from "./pages/admin/Departments";
 import AdminEmployees from "./pages/admin/Employees";
-import AdminHome from "./pages/admin/Home";
+import AdminReports from "./pages/admin/Reports";
 import EmployeeHome from "./pages/employee/Home";
-import HRHome from "./pages/hr/Home";
+import HRDashboard from "./pages/hr/HRDashboard";
+import HRLeaves from "./pages/hr/Leaves";
 import HRRoster from "./pages/hr/Roster";
 import HRRegistrations from "./pages/hr/Registrations";
 import HRRules from "./pages/hr/Rules";
@@ -26,16 +29,19 @@ const App = () => {
 
       <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
         <Route path="/dashboard/admin" element={<AdminLayout />}>
-          <Route index element={<AdminHome />} />
+          <Route index element={<AdminDashboard />} />
           <Route path="employees" element={<AdminEmployees />} />
+          <Route path="departments" element={<AdminDepartments />} />
+          <Route path="reports" element={<AdminReports />} />
           <Route path="*" element={<Navigate to="/dashboard/admin" replace />} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["HR"]} />}>
         <Route path="/dashboard/hr" element={<HRLayout />}>
-          <Route index element={<HRHome />} />
+          <Route index element={<HRDashboard />} />
           <Route path="registrations" element={<HRRegistrations />} />
+          <Route path="leaves" element={<HRLeaves />} />
           <Route path="shifts" element={<HRShifts />} />
           <Route path="rules" element={<HRRules />} />
           <Route path="roster" element={<HRRoster />} />

@@ -45,7 +45,7 @@ const HRLayout = () => {
               }`
             }
           >
-            Home
+            Dashboard
           </NavLink>
           <NavLink
             to="/dashboard/hr/registrations"
@@ -58,6 +58,18 @@ const HRLayout = () => {
             }
           >
             Registrations
+          </NavLink>
+          <NavLink
+            to="/dashboard/hr/leaves"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-700 text-white"
+                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
+              }`
+            }
+          >
+            Leaves
           </NavLink>
           <NavLink
             to="/dashboard/hr/shifts"

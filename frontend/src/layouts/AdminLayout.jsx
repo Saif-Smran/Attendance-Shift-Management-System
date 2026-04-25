@@ -61,6 +61,30 @@ const AdminLayout = () => {
           >
             Employees
           </NavLink>
+          <NavLink
+            to="/dashboard/admin/departments"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-700 text-white"
+                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
+              }`
+            }
+          >
+            Departments
+          </NavLink>
+          <NavLink
+            to="/dashboard/admin/reports"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-700 text-white"
+                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
+              }`
+            }
+          >
+            Reports
+          </NavLink>
         </nav>
         <main className="pt-6">
           <Outlet />

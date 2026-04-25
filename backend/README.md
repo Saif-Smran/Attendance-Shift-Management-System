@@ -96,6 +96,27 @@ Gate endpoints are public by design and accept only:
 - `PATCH /api/registrations/:id/approve`
 - `PATCH /api/registrations/:id/reject`
 
+## Dashboard Summary Endpoints (Authenticated)
+
+- `GET /api/dashboard/admin` (ADMIN)
+   - returns admin KPI summary, department attendance chart data, and flagged event stream
+- `GET /api/dashboard/hr` (HR, ADMIN)
+   - returns HR KPI summary, weekly attendance trend, and recent leave applications
+
+## Department Management Endpoints
+
+- `GET /api/departments` (ADMIN, HR)
+- `POST /api/departments` (ADMIN)
+- `PUT /api/departments/:id` (ADMIN)
+- `DELETE /api/departments/:id` (ADMIN)
+   - delete is blocked when users are still assigned to the department
+
+## Leave Management Endpoints
+
+- `GET /api/leaves` (ADMIN, HR)
+- `PUT /api/leaves/:id/approve` (ADMIN, HR)
+- `PUT /api/leaves/:id/reject` (ADMIN, HR)
+
 ## Shift Management Endpoints (Authenticated)
 
 - `GET /api/shifts`
@@ -129,3 +150,4 @@ Gate endpoints are public by design and accept only:
 - Deleting an employee is a soft delete (status is set to `INACTIVE`).
 - Roster assignment hard-blocks with `Max 14 consecutive roster days` when an assignment would exceed the policy.
 - Rules now track `updatedBy` and `updatedAt` for HR visibility of last changes.
+- Dashboard routes are designed for one-request role dashboards to reduce frontend orchestration.

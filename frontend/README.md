@@ -36,13 +36,18 @@ Public routes:
 
 Protected routes:
 - `/dashboard/admin` (ADMIN)
+  - `/dashboard/admin` - Admin Dashboard (KPI cards, flagged events, department chart)
   - `/dashboard/admin/employees` - Employee Management
+  - `/dashboard/admin/departments` - Department Management
+  - `/dashboard/admin/reports` - Reporting Console
 - `/dashboard/hr` (HR)
+  - `/dashboard/hr` - HR Dashboard (trend chart, leave queue, quick actions)
   - `/dashboard/hr/registrations` - Registration Management
+  - `/dashboard/hr/leaves` - Leave Management
   - `/dashboard/hr/shifts` - Shift Management
   - `/dashboard/hr/rules` - Attendance Rules
   - `/dashboard/hr/roster` - Weekly Roster
-  - `/dashboard/hr` can consume `/api/attendance` and `/api/attendance/today` for monitoring
+  - `/dashboard/hr` consumes `/api/dashboard/hr` and leave review endpoints
 - `/dashboard/employee` (EMPLOYEE, SECURITY)
   - `/dashboard/employee` can consume `/api/attendance/me` and `/api/attendance/me/summary?month=YYYY-MM`
 
@@ -68,6 +73,24 @@ Protected routes:
   - Change an employee's role or status.
   - Soft delete an employee (sets status to `INACTIVE`).
 
+## Admin Dashboard
+
+- `/dashboard/admin` uses `GET /api/dashboard/admin` for a single aggregate payload.
+- Includes:
+  - Total employees with worker/staff/security/HR split
+  - Present and late counts for today
+  - Pending registrations shortcut to HR queue
+  - Department-wise attendance bar chart (Recharts)
+  - Flagged attendance events table
+
+## Department Management (Admin)
+
+- `/dashboard/admin/departments` uses department CRUD APIs.
+- Admin can:
+  - Add department
+  - Rename department
+  - Delete department (blocked when employees are assigned)
+
 ## Registration Management (HR)
 
 - The `/dashboard/hr/registrations` page allows HR staff to manage pending user registrations.
@@ -76,6 +99,16 @@ Protected routes:
   - Filter registrations by status (`PENDING`, `APPROVED`, `REJECTED`).
   - Approve a pending registration, which creates a new user and employee.
   - Reject a pending registration, with an optional reason.
+
+## HR Dashboard
+
+- `/dashboard/hr` uses `GET /api/dashboard/hr` for a single aggregate payload.
+- Includes:
+  - Pending registrations and pending leave cards
+  - Present and flagged attendance today cards
+  - Weekly present/late/absent trend line chart (Recharts)
+  - Recent leave applications with quick approve/reject actions
+  - One-click CSV export of weekly attendance trend
 
 ## Shift Management (HR)
 
