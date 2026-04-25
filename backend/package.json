@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "node ./node_modules/nodemon/bin/nodemon.js server.js",
     "start": "node server.js",
+    "test": "node --test src/**/*.test.js",
     "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
+    "test:calculator": "node --test src/lib/rules/calculator.test.js",
     "prisma:validate": "node ./node_modules/prisma/build/index.js validate",
     "prisma:migrate": "node ./node_modules/prisma/build/index.js migrate dev",
     "prisma:migrate:deploy": "node ./node_modules/prisma/build/index.js migrate deploy",

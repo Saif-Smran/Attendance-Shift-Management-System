@@ -85,6 +85,11 @@ Frontend default URL: `http://localhost:5173`
 - Gate attendance endpoints:
   - `/api/gate/clockin`
   - `/api/gate/clockout`
+- Attendance query endpoints:
+   - `GET /api/attendance` (ADMIN, HR) - Filter by `department`, `date`, `employee`
+   - `GET /api/attendance/me` (authenticated) - Current user's attendance list
+   - `GET /api/attendance/me/summary?month=YYYY-MM` (authenticated) - Monthly summary
+   - `GET /api/attendance/today` (ADMIN, HR) - Today snapshot for all active employees
 - Employee management endpoints (ADMIN):
   - `GET /api/employees` - List all employees with filters
   - `POST /api/employees` - Create a new employee
@@ -122,6 +127,8 @@ Frontend default URL: `http://localhost:5173`
 - HR shift page for inline schedule edits.
 - HR rules page with grouped policy controls and Ramadan settings.
 - HR roster page with weekly view, shift color coding, and consecutive-day warnings.
+- Attendance calculation engine now applies late/early-exit priority rules, Ramadan break logic (sehri/iftar), and role-based OT calculation.
+- Roster policy helper supports consecutive-day checks via `checkRosterLimit(userId, date, prisma)`.
 
 ## Notes
 
@@ -135,6 +142,6 @@ Frontend default URL: `http://localhost:5173`
 
 ## Next Recommended Steps
 
-1. Implement module routes and controllers for roster, leaves, reports, shifts.
+1. Implement remaining module routes and controllers for leaves and reports.
 2. Add validation layer (Zod or Joi) and request-level DTOs.
 3. Add tests (unit + integration + API smoke tests).

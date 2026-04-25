@@ -39,7 +39,7 @@ const Table = ({
   return (
     <div className="overflow-hidden rounded-xl border border-brand-100 bg-white">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-sm">
+        <table className="w-full min-w-190 border-collapse text-sm">
           <thead className="bg-brand-50">
             <tr>
               {columns.map((column) => {

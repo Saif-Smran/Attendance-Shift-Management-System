@@ -42,7 +42,9 @@ Protected routes:
   - `/dashboard/hr/shifts` - Shift Management
   - `/dashboard/hr/rules` - Attendance Rules
   - `/dashboard/hr/roster` - Weekly Roster
+  - `/dashboard/hr` can consume `/api/attendance` and `/api/attendance/today` for monitoring
 - `/dashboard/employee` (EMPLOYEE, SECURITY)
+  - `/dashboard/employee` can consume `/api/attendance/me` and `/api/attendance/me/summary?month=YYYY-MM`
 
 ## Auth Flow
 

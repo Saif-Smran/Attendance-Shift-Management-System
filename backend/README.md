@@ -38,6 +38,7 @@ Express + Prisma backend for authentication, gate attendance, and role-based API
 
 - `npm run dev` - start with nodemon
 - `npm run start` - start production mode
+- `npm test` - run backend unit tests (Node test runner)
 - `npm run dev:docker` - migrate + dev
 - `npm run start:docker` - migrate + start
 - `npm run prisma:validate`
@@ -68,6 +69,17 @@ Express + Prisma backend for authentication, gate attendance, and role-based API
 Gate endpoints are public by design and accept only:
 - `employeeCode`
 - `password`
+
+## Attendance Query Endpoints (Authenticated)
+
+- `GET /api/attendance` (ADMIN, HR)
+   - filters: `department`, `date`, `employee`, `page`, `limit`
+- `GET /api/attendance/me` (authenticated)
+   - filters: `date`, `page`, `limit`
+- `GET /api/attendance/me/summary?month=YYYY-MM` (authenticated)
+   - returns: `presentDays`, `lateDays`, `absentDays`, `earlyExitDays`, `otHours`
+- `GET /api/attendance/today` (ADMIN, HR)
+   - returns all active employee/security users with today's status (defaults to `ABSENT` when no record)
 
 ## Employee Management Endpoints (ADMIN)
 
@@ -110,6 +122,8 @@ Gate endpoints are public by design and accept only:
 - Login supports email or employee code.
 - Refresh tokens are stored in Redis by user id.
 - Attendance calculation runs on clock-out and updates computed attendance fields.
+- Calculation engine now enforces late, excessive-late, early-exit, Ramadan break, and role-based OT logic.
+- Rules library includes `checkRosterLimit(userId, date, prisma)` for 14-day consecutive roster checks.
 - Approving a registration creates a `User` and `Employee` record.
 - Rejecting a registration updates the `Registration` status to `REJECTED` and adds a `rejectionReason`.
 - Deleting an employee is a soft delete (status is set to `INACTIVE`).

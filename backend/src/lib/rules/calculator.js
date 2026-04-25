@@ -1,196 +1,294 @@
-const toMinutes = (start, end) => {
-  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000));
-};
+const MINUTE_MS = 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-const roundHours = (minutes) => {
-  return Number((Math.max(0, minutes) / 60).toFixed(2));
-};
+const minutesBetween = (start, end) =>
+  Math.round((end.getTime() - start.getTime()) / MINUTE_MS);
 
-const buildDateAtTime = (date, timeValue) => {
-  if (!timeValue) {
+const toHours = (minutes) => Number((Math.max(0, minutes) / 60).toFixed(2));
+
+const parseTime = (value) => {
+  const [hoursPart, minutesPart] = String(value || "").split(":");
+  const hours = Number.parseInt(hoursPart, 10);
+  const minutes = Number.parseInt(minutesPart, 10);
+
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
     return null;
   }
 
-  const [hoursPart, minutesPart] = String(timeValue).split(":");
-  const hours = Number(hoursPart);
-  const minutes = Number(minutesPart);
+  return { hours, minutes };
+};
 
-  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
+const asDateAtTime = (baseDate, hhmm) => {
+  const parsed = parseTime(hhmm);
+
+  if (!parsed) {
     return null;
   }
 
-  const output = new Date(date);
-  output.setHours(hours, minutes, 0, 0);
-  return output;
+  const date = new Date(baseDate);
+  date.setHours(parsed.hours, parsed.minutes, 0, 0);
+  return date;
 };
 
-const isTimeInRange = (date, startTime, endTime) => {
-  const rangeStart = buildDateAtTime(date, startTime);
-  const rangeEnd = buildDateAtTime(date, endTime);
+const normalizeShiftWindow = (clockInDate, shift) => {
+  const shiftStart = asDateAtTime(clockInDate, shift?.startTime);
+  const shiftEnd = asDateAtTime(clockInDate, shift?.endTime);
 
-  if (!rangeStart || !rangeEnd) {
-    return false;
+  if (!shiftStart || !shiftEnd) {
+    return {
+      shiftStart: null,
+      shiftEnd: null
+    };
   }
 
-  const minuteOfDay = date.getHours() * 60 + date.getMinutes();
-  const startMinute = rangeStart.getHours() * 60 + rangeStart.getMinutes();
-  const endMinute = rangeEnd.getHours() * 60 + rangeEnd.getMinutes();
-
-  if (endMinute < startMinute) {
-    return minuteOfDay >= startMinute || minuteOfDay <= endMinute;
+  if (shiftEnd <= shiftStart) {
+    shiftEnd.setDate(shiftEnd.getDate() + 1);
   }
 
-  return minuteOfDay >= startMinute && minuteOfDay <= endMinute;
+  return {
+    shiftStart,
+    shiftEnd
+  };
 };
 
-const resolveStatus = ({
-  lateMinutes,
-  earlyExitMinutes,
-  lateThresholdMinutes,
-  excessiveLateAfterMinutes,
-  earlyExitFlagStartMinutes,
-  earlyExitFlagEndMinutes
-}) => {
-  let status = "PRESENT";
+const resolveTimeInsideShiftWindow = (shiftStart, shiftEnd, hhmm) => {
+  const candidate = asDateAtTime(shiftStart, hhmm);
 
-  if (lateMinutes > lateThresholdMinutes + excessiveLateAfterMinutes) {
-    status = "EXCESSIVE_LATE";
-  } else if (lateMinutes > lateThresholdMinutes) {
-    status = "LATE";
+  if (!candidate) {
+    return null;
   }
 
-  if (earlyExitMinutes >= earlyExitFlagStartMinutes) {
-    return "EARLY_EXIT_OVER_1HR";
+  while (candidate < shiftStart) {
+    candidate.setDate(candidate.getDate() + 1);
   }
 
-  if (earlyExitMinutes >= earlyExitFlagEndMinutes) {
-    if (status === "EXCESSIVE_LATE") {
-      return "EXCESSIVE_LATE";
-    }
-
-    return "EARLY_EXIT";
+  if (candidate > shiftEnd) {
+    return null;
   }
 
-  return status;
+  return candidate;
 };
+
+const overlapMinutes = (startA, endA, startB, endB) => {
+  const overlapStart = Math.max(startA.getTime(), startB.getTime());
+  const overlapEnd = Math.min(endA.getTime(), endB.getTime());
+  return Math.max(0, Math.round((overlapEnd - overlapStart) / MINUTE_MS));
+};
+
+const statusPriority = [
+  "EARLY_EXIT_OVER_1HR",
+  "EXCESSIVE_LATE",
+  "EARLY_EXIT",
+  "LATE",
+  "PRESENT"
+];
+
+const resolveFinalStatus = (lateStatus, earlyStatus) =>
+  statusPriority.find((status) => status === earlyStatus || status === lateStatus) ||
+  "PRESENT";
 
 export const calculateAttendance = ({
   clockIn,
   clockOut,
-  shiftStart,
-  shiftEnd,
+  shift,
   rule,
   isRamadan,
-  userRole
+  employeeRole
 }) => {
-  if (!clockIn || !clockOut) {
-    return {
-      status: "ABSENT",
-      lateMinutes: 0,
-      earlyExitMinutes: 0,
-      missedHours: 0,
-      otHours: 0,
-      flagged: true,
-      flagReasons: ["INCOMPLETE_ATTENDANCE"],
-      sehriBreakApplied: false,
-      iftarBreakApplied: false
-    };
+  if (!(clockIn instanceof Date) || Number.isNaN(clockIn.getTime())) {
+    throw new Error("clockIn must be a valid Date object");
   }
 
-  const ruleValues = {
-    lateThresholdMinutes: rule?.lateThresholdMinutes ?? 15,
-    excessiveLateAfterMinutes: rule?.excessiveLateAfterMinutes ?? 15,
-    earlyExitFlagStartMinutes: rule?.earlyExitFlagStartMinutes ?? 60,
-    earlyExitFlagEndMinutes: rule?.earlyExitFlagEndMinutes ?? 30,
-    securityOT: rule?.securityOT ?? false,
-    otMethod: rule?.otMethod ?? "AFTER_8_HOURS",
-    sehriStart: rule?.sehriStart,
-    sehriEnd: rule?.sehriEnd,
-    iftarConflictStart: rule?.iftarConflictStart,
-    iftarConflictEnd: rule?.iftarConflictEnd
-  };
-
-  const clockInDate = new Date(clockIn);
-  const clockOutDate = new Date(clockOut);
-
-  const shiftStartDate = buildDateAtTime(clockInDate, shiftStart);
-  const shiftEndDate = buildDateAtTime(clockInDate, shiftEnd);
-
-  if (shiftStartDate && shiftEndDate && shiftEndDate <= shiftStartDate) {
-    shiftEndDate.setDate(shiftEndDate.getDate() + 1);
+  if (!(clockOut instanceof Date) || Number.isNaN(clockOut.getTime())) {
+    throw new Error("clockOut must be a valid Date object");
   }
 
-  const workedMinutes = toMinutes(clockInDate, clockOutDate);
-  const scheduledMinutes =
-    shiftStartDate && shiftEndDate ? toMinutes(shiftStartDate, shiftEndDate) : 8 * 60;
+  const { shiftStart, shiftEnd } = normalizeShiftWindow(clockIn, shift);
 
-  const lateMinutes = shiftStartDate ? toMinutes(shiftStartDate, clockInDate) : 0;
-  const earlyExitMinutes = shiftEndDate ? toMinutes(clockOutDate, shiftEndDate) : 0;
+  let lateMinutes = 0;
+  let lateStatus = "PRESENT";
 
-  const status = resolveStatus({
-    lateMinutes,
-    earlyExitMinutes,
-    lateThresholdMinutes: ruleValues.lateThresholdMinutes,
-    excessiveLateAfterMinutes: ruleValues.excessiveLateAfterMinutes,
-    earlyExitFlagStartMinutes: ruleValues.earlyExitFlagStartMinutes,
-    earlyExitFlagEndMinutes: ruleValues.earlyExitFlagEndMinutes
-  });
+  if (shiftStart) {
+    const diffMinutes = minutesBetween(shiftStart, clockIn);
 
-  const missedMinutes = Math.max(0, scheduledMinutes - workedMinutes);
-  const otMinutesByRule =
-    ruleValues.otMethod === "AFTER_8_HOURS" ? Math.max(0, workedMinutes - 8 * 60) : 0;
-  const otMinutes =
-    userRole === "SECURITY" && !ruleValues.securityOT ? 0 : otMinutesByRule;
+    if (diffMinutes > 0 && diffMinutes <= 15) {
+      lateMinutes = diffMinutes;
+      lateStatus = "LATE";
+    } else if (diffMinutes > 15) {
+      lateMinutes = diffMinutes;
+      lateStatus = "EXCESSIVE_LATE";
+    }
+  }
 
-  const sehriBreakApplied = Boolean(
-    isRamadan &&
-      ruleValues.sehriStart &&
-      ruleValues.sehriEnd &&
-      isTimeInRange(clockInDate, ruleValues.sehriStart, ruleValues.sehriEnd)
-  );
-
-  const iftarBreakApplied = Boolean(
-    isRamadan &&
-      ruleValues.iftarConflictStart &&
-      ruleValues.iftarConflictEnd &&
-      isTimeInRange(
-        clockOutDate,
-        ruleValues.iftarConflictStart,
-        ruleValues.iftarConflictEnd
-      )
-  );
-
+  let earlyExitMinutes = 0;
+  let missedHours = 0;
+  let earlyStatus = "PRESENT";
+  let flagged = false;
   const flagReasons = [];
 
-  if (status === "EXCESSIVE_LATE") {
-    flagReasons.push("EXCESSIVE_LATE");
+  if (shiftEnd) {
+    const diffMinutes = minutesBetween(clockOut, shiftEnd);
+
+    if (diffMinutes >= 30 && diffMinutes <= 60) {
+      earlyExitMinutes = diffMinutes;
+      earlyStatus = "EARLY_EXIT";
+      flagged = true;
+      flagReasons.push(`Early exit: left ${diffMinutes} minutes before shift end`);
+    } else if (diffMinutes > 60) {
+      earlyExitMinutes = diffMinutes;
+      missedHours = toHours(diffMinutes);
+      earlyStatus = "EARLY_EXIT_OVER_1HR";
+      flagged = true;
+      flagReasons.push(`Left over 1 hour early, missed ${missedHours} hours`);
+    }
   }
 
-  if (status === "EARLY_EXIT") {
-    flagReasons.push("EARLY_EXIT");
+  let breakMinutes = Number(rule?.tiffinBreakMinutes ?? 60);
+  let sehriBreakApplied = false;
+  let iftarBreakApplied = false;
+
+  const shiftType = String(shift?.type || "").toUpperCase();
+
+  if (isRamadan && shiftStart && shiftEnd) {
+    if (shiftType === "NIGHT" || shiftType === "RAMADAN_NIGHT") {
+      sehriBreakApplied = true;
+      breakMinutes += 60;
+
+      const iftarDate = resolveTimeInsideShiftWindow(shiftStart, shiftEnd, rule?.iftarTime);
+      if (iftarDate) {
+        let iftarMinutes = 60;
+
+        const conflictStart = resolveTimeInsideShiftWindow(
+          shiftStart,
+          shiftEnd,
+          rule?.iftarConflictStart
+        );
+        const conflictEnd = resolveTimeInsideShiftWindow(
+          shiftStart,
+          shiftEnd,
+          rule?.iftarConflictEnd
+        );
+
+        if (
+          conflictStart &&
+          conflictEnd &&
+          iftarDate.getTime() >= conflictStart.getTime() &&
+          iftarDate.getTime() <= conflictEnd.getTime()
+        ) {
+          const iftarStart = new Date(iftarDate);
+          const iftarEnd = new Date(iftarDate.getTime() + 60 * MINUTE_MS);
+
+          const sehriStart = resolveTimeInsideShiftWindow(shiftStart, shiftEnd, rule?.sehriStart);
+          const sehriEnd = resolveTimeInsideShiftWindow(shiftStart, shiftEnd, rule?.sehriEnd);
+
+          if (sehriStart && sehriEnd) {
+            iftarMinutes -= overlapMinutes(iftarStart, iftarEnd, sehriStart, sehriEnd);
+          }
+
+          const minutesUntilShiftEnd = Math.max(0, minutesBetween(iftarStart, shiftEnd));
+          iftarMinutes = Math.min(iftarMinutes, minutesUntilShiftEnd);
+        }
+
+        iftarMinutes = Math.max(0, Math.min(60, iftarMinutes));
+        if (iftarMinutes > 0) {
+          iftarBreakApplied = true;
+          breakMinutes += iftarMinutes;
+        }
+      }
+    }
+
+    if (shiftType === "SECURITY_DAY") {
+      iftarBreakApplied = true;
+      breakMinutes += 60;
+    }
+
+    if (shiftType === "SECURITY_NIGHT") {
+      sehriBreakApplied = true;
+      breakMinutes += 60;
+    }
   }
 
-  if (status === "EARLY_EXIT_OVER_1HR") {
-    flagReasons.push("EARLY_EXIT_OVER_1HR");
+  let otHours = 0;
+  if (employeeRole !== "SECURITY") {
+    const totalMinutes = Math.max(0, minutesBetween(clockIn, clockOut));
+    const effectiveWork = totalMinutes - breakMinutes;
+    const standardWork = 8 * 60;
+
+    if (effectiveWork > standardWork) {
+      otHours = toHours(effectiveWork - standardWork);
+    }
   }
 
-  if (sehriBreakApplied) {
-    flagReasons.push("SEHRI_WINDOW");
-  }
-
-  if (iftarBreakApplied) {
-    flagReasons.push("IFTAR_WINDOW");
-  }
+  const status = resolveFinalStatus(lateStatus, earlyStatus);
 
   return {
     status,
     lateMinutes,
     earlyExitMinutes,
-    missedHours: roundHours(missedMinutes),
-    otHours: roundHours(otMinutes),
-    flagged: flagReasons.length > 0,
-    flagReasons,
+    missedHours,
+    otHours,
     sehriBreakApplied,
-    iftarBreakApplied
+    iftarBreakApplied,
+    flagged,
+    flagReasons
+  };
+};
+
+export const checkRosterLimit = async (userId, date, prismaClient) => {
+  const inputDate = new Date(date);
+  if (Number.isNaN(inputDate.getTime())) {
+    throw new Error("date must be a valid date value");
+  }
+
+  const day = new Date(inputDate);
+  day.setUTCHours(0, 0, 0, 0);
+
+  const previousDay = new Date(day.getTime() - ONE_DAY_MS);
+
+  const rows = await prismaClient.roster.findMany({
+    where: {
+      userId,
+      date: {
+        lte: previousDay
+      }
+    },
+    select: {
+      date: true
+    },
+    orderBy: {
+      date: "desc"
+    }
+  });
+
+  let consecutiveDays = 0;
+  let cursor = previousDay.getTime();
+
+  for (const row of rows) {
+    const rowDate = new Date(row.date);
+    rowDate.setUTCHours(0, 0, 0, 0);
+
+    const rowTime = rowDate.getTime();
+
+    if (rowTime === cursor) {
+      consecutiveDays += 1;
+      cursor -= ONE_DAY_MS;
+      continue;
+    }
+
+    if (rowTime < cursor) {
+      break;
+    }
+  }
+
+  return {
+    exceeded: consecutiveDays >= 14,
+    consecutiveDays
   };
 };

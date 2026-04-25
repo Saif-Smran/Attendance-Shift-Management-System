@@ -8,6 +8,7 @@ import { authenticate } from "./middlewares/authenticate.js";
 import { authorize } from "./middlewares/authorize.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import authRouter from "./modules/auth/auth.routes.js";
+import attendanceRouter from "./modules/attendance/attendance.routes.js";
 import gateRouter from "./modules/attendance/gate.routes.js";
 import employeeRouter from "./modules/employees/employee.routes.js";
 import registrationRouter from "./modules/employees/registration.routes.js";
@@ -102,6 +103,7 @@ app.get("/api/v1", (req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/gate", gateRouter);
+app.use("/api/attendance", attendanceRouter);
 app.use("/api/employees", employeeRouter);
 app.use("/api/registrations", registrationRouter);
 app.use("/api/shifts", shiftRouter);

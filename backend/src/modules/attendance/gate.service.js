@@ -236,11 +236,10 @@ export const clockOut = async (employeeCode, password) => {
   const calculated = calculateAttendance({
     clockIn: existingAttendance.clockIn,
     clockOut: now,
-    shiftStart: roster?.shift?.startTime,
-    shiftEnd: roster?.shift?.endTime,
+    shift: roster?.shift,
     rule: activeRule,
     isRamadan,
-    userRole: user.role
+    employeeRole: user.role
   });
 
   const updatedAttendance = await prisma.attendance.update({
