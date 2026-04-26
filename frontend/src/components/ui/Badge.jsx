@@ -1,10 +1,18 @@
 const STATUS_CLASSNAME = {
+  PRESENT: "border-emerald-300 bg-emerald-100 text-emerald-700",
+  ABSENT: "border-rose-300 bg-rose-100 text-rose-700",
   PENDING: "border-amber-300 bg-amber-100 text-amber-700",
   APPROVED: "border-emerald-300 bg-emerald-100 text-emerald-700",
   ACTIVE: "border-emerald-300 bg-emerald-100 text-emerald-700",
   REJECTED: "border-rose-300 bg-rose-100 text-rose-700",
   INACTIVE: "border-rose-300 bg-rose-100 text-rose-700",
-  LATE: "border-orange-300 bg-orange-100 text-orange-700"
+  LATE: "border-orange-300 bg-orange-100 text-orange-700",
+  EXCESSIVE_LATE: "border-orange-400 bg-orange-100 text-orange-800",
+  EARLY_EXIT: "border-yellow-300 bg-yellow-100 text-yellow-700",
+  EARLY_EXIT_OVER_1HR: "border-yellow-400 bg-yellow-100 text-yellow-800",
+  WARNING: "border-amber-300 bg-amber-100 text-amber-700",
+  EXCEEDED: "border-rose-300 bg-rose-100 text-rose-700",
+  OK: "border-sky-300 bg-sky-100 text-sky-700"
 };
 
 const Badge = ({ value, label, className = "" }) => {

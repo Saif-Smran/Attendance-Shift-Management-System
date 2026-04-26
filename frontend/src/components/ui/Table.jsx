@@ -21,7 +21,8 @@ const Table = ({
   page = 1,
   limit = 10,
   total = 0,
-  onPageChange
+  onPageChange,
+  rowClassName
 }) => {
   const totalPages = Math.max(1, Math.ceil(total / Math.max(limit, 1)));
   const safePage = Math.min(Math.max(page, 1), totalPages);
@@ -91,7 +92,12 @@ const Table = ({
               </tr>
             ) : (
               data.map((row, rowIndex) => (
-                <tr key={row.id || `${rowIndex}-${row.employeeCode || "row"}`} className="border-b border-brand-50 hover:bg-brand-50/50">
+                <tr
+                  key={row.id || `${rowIndex}-${row.employeeCode || "row"}`}
+                  className={`border-b border-brand-50 hover:bg-brand-50/50 ${
+                    typeof rowClassName === "function" ? rowClassName(row, rowIndex) : ""
+                  }`}
+                >
                   {columns.map((column) => (
                     <td key={column.key} className="px-4 py-3 align-top text-slate-700">
                       {renderCellContent(column, row, rowIndex)}

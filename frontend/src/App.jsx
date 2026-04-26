@@ -7,9 +7,13 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminDepartments from "./pages/admin/Departments";
 import AdminEmployees from "./pages/admin/Employees";
 import AdminReports from "./pages/admin/Reports";
-import EmployeeHome from "./pages/employee/Home";
+import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
+import MyAttendance from "./pages/employee/MyAttendance";
+import MyLeaves from "./pages/employee/MyLeaves";
+import MyShift from "./pages/employee/MyShift";
 import HRDashboard from "./pages/hr/HRDashboard";
 import HRLeaves from "./pages/hr/Leaves";
+import HRReports from "./pages/hr/Reports";
 import HRRoster from "./pages/hr/Roster";
 import HRRegistrations from "./pages/hr/Registrations";
 import HRRules from "./pages/hr/Rules";
@@ -45,13 +49,17 @@ const App = () => {
           <Route path="shifts" element={<HRShifts />} />
           <Route path="rules" element={<HRRules />} />
           <Route path="roster" element={<HRRoster />} />
+          <Route path="reports" element={<HRReports />} />
           <Route path="*" element={<Navigate to="/dashboard/hr" replace />} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["EMPLOYEE", "SECURITY"]} />}>
         <Route path="/dashboard/employee" element={<EmployeeLayout />}>
-          <Route index element={<EmployeeHome />} />
+          <Route index element={<EmployeeDashboard />} />
+          <Route path="my-attendance" element={<MyAttendance />} />
+          <Route path="my-leaves" element={<MyLeaves />} />
+          <Route path="my-shift" element={<MyShift />} />
           <Route path="*" element={<Navigate to="/dashboard/employee" replace />} />
         </Route>
       </Route>

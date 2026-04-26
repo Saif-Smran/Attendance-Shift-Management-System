@@ -199,7 +199,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="overflow-auto">
-            <table className="w-full min-w-[360px] text-sm">
+            <table className="w-full min-w-90 text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-[0.08em] text-slate-500">
                   <th className="pb-2">Employee</th>

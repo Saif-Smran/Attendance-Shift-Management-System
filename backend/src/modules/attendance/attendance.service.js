@@ -180,6 +180,42 @@ const buildAttendanceFilter = (filters = {}, userId = null) => {
     };
   }
 
+  if (filters.from || filters.to) {
+    const fromDate = filters.from ? normalizeDate(filters.from) : null;
+    const toDate = filters.to ? normalizeDate(filters.to) : null;
+
+    if (filters.from && !fromDate) {
+      throw toError("Invalid from filter", 400);
+    }
+
+    if (filters.to && !toDate) {
+      throw toError("Invalid to filter", 400);
+    }
+
+    const start = fromDate || toDate;
+    const endDate = toDate || fromDate;
+
+    if (endDate < start) {
+      throw toError("to must be after or equal to from", 400);
+    }
+
+    const endExclusive = new Date(endDate);
+    endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+
+    where.date = {
+      gte: start,
+      lt: endExclusive
+    };
+  }
+
+  if (filters.status) {
+    const status = String(filters.status).trim().toUpperCase();
+
+    if (status) {
+      where.status = status;
+    }
+  }
+
   return where;
 };
 

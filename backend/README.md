@@ -73,9 +73,9 @@ Gate endpoints are public by design and accept only:
 ## Attendance Query Endpoints (Authenticated)
 
 - `GET /api/attendance` (ADMIN, HR)
-   - filters: `department`, `date`, `employee`, `page`, `limit`
+   - filters: `department`, `date`, `employee`, `from`, `to`, `status`, `page`, `limit`
 - `GET /api/attendance/me` (authenticated)
-   - filters: `date`, `page`, `limit`
+   - filters: `date`, `from`, `to`, `status`, `page`, `limit`
 - `GET /api/attendance/me/summary?month=YYYY-MM` (authenticated)
    - returns: `presentDays`, `lateDays`, `absentDays`, `earlyExitDays`, `otHours`
 - `GET /api/attendance/today` (ADMIN, HR)
@@ -113,9 +113,24 @@ Gate endpoints are public by design and accept only:
 
 ## Leave Management Endpoints
 
+- `POST /api/leaves` (EMPLOYEE, SECURITY)
+- `GET /api/leaves/me` (EMPLOYEE, SECURITY)
 - `GET /api/leaves` (ADMIN, HR)
 - `PUT /api/leaves/:id/approve` (ADMIN, HR)
 - `PUT /api/leaves/:id/reject` (ADMIN, HR)
+
+## Reports Endpoints (ADMIN, HR)
+
+- `GET /api/reports/attendance`
+- `GET /api/reports/ot`
+- `GET /api/reports/violations`
+- `GET /api/reports/ramadan`
+- `GET /api/reports/roster-compliance`
+
+## Export Endpoints (ADMIN, HR)
+
+- `GET /api/export/excel?type=attendance&params={...}`
+- `GET /api/export/pdf?type=attendance&params={...}`
 
 ## Shift Management Endpoints (Authenticated)
 
@@ -151,3 +166,5 @@ Gate endpoints are public by design and accept only:
 - Roster assignment hard-blocks with `Max 14 consecutive roster days` when an assignment would exceed the policy.
 - Rules now track `updatedBy` and `updatedAt` for HR visibility of last changes.
 - Dashboard routes are designed for one-request role dashboards to reduce frontend orchestration.
+- Reports module supports attendance, OT, violations, Ramadan, and roster compliance queries.
+- Export module uses `xlsx`, `jspdf`, and `jspdf-autotable` to generate downloadable files.

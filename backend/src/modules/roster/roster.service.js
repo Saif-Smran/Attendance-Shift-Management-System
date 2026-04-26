@@ -126,6 +126,8 @@ const sanitizeRoster = (roster, streakDays = 0) => ({
   shiftId: roster.shiftId,
   shiftName: roster.shift?.name || null,
   shiftType: roster.shift?.type || null,
+  shiftStart: roster.shift?.startTime || null,
+  shiftEnd: roster.shift?.endTime || null,
   date: roster.date,
   isRamadan: roster.isRamadan,
   consecutiveDays: streakDays,
@@ -207,7 +209,9 @@ export const getRoster = async (filters = {}) => {
         select: {
           id: true,
           name: true,
-          type: true
+          type: true,
+          startTime: true,
+          endTime: true
         }
       },
       user: {
@@ -259,7 +263,9 @@ export const getMyRoster = async (userId) => {
         select: {
           id: true,
           name: true,
-          type: true
+          type: true,
+          startTime: true,
+          endTime: true
         }
       }
     },
@@ -338,7 +344,9 @@ export const assignRoster = async (userId, shiftId, dateRange = {}) => {
           select: {
             id: true,
             name: true,
-            type: true
+            type: true,
+            startTime: true,
+            endTime: true
           }
         },
         user: {

@@ -47,9 +47,13 @@ Protected routes:
   - `/dashboard/hr/shifts` - Shift Management
   - `/dashboard/hr/rules` - Attendance Rules
   - `/dashboard/hr/roster` - Weekly Roster
+  - `/dashboard/hr/reports` - Reports console with export actions
   - `/dashboard/hr` consumes `/api/dashboard/hr` and leave review endpoints
 - `/dashboard/employee` (EMPLOYEE, SECURITY)
-  - `/dashboard/employee` can consume `/api/attendance/me` and `/api/attendance/me/summary?month=YYYY-MM`
+  - `/dashboard/employee` - Employee dashboard (today status, summary, week shifts, leave form)
+  - `/dashboard/employee/my-attendance` - Personal attendance table (month filter)
+  - `/dashboard/employee/my-leaves` - Personal leave history
+  - `/dashboard/employee/my-shift` - Current shift + monthly roster calendar
 
 ## Auth Flow
 
@@ -109,6 +113,30 @@ Protected routes:
   - Weekly present/late/absent trend line chart (Recharts)
   - Recent leave applications with quick approve/reject actions
   - One-click CSV export of weekly attendance trend
+
+## HR Reports
+
+- `/dashboard/hr/reports` supports five tabs:
+  - Attendance Report
+  - OT Report
+  - Violations Report
+  - Ramadan Report
+  - Roster Compliance
+- Each tab includes filter controls, sortable columns, row color coding, pagination, and export buttons.
+- Exports trigger backend endpoints `/api/export/excel` and `/api/export/pdf`.
+
+## Employee Dashboard Suite
+
+- Employee dashboard uses warm-white + teal design language.
+- Highlights today status with live duration for active shifts.
+- Includes monthly attendance summary cards.
+- Includes leave request form and last three leave applications.
+- Includes weekly shift schedule and dedicated attendance/leave/shift pages.
+
+## Dynamic Titles
+
+- Route-level title updates are enabled via a shared hook.
+- Titles include both page context and signed-in user context.
 
 ## Shift Management (HR)
 

@@ -1,92 +1,76 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
+import Sidebar from "../components/shared/Sidebar";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useAuthStore } from "../store/authStore";
 
 const AdminLayout = () => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  usePageTitle("Admin Dashboard");
+
+  const links = [
+    {
+      to: "/dashboard/admin",
+      label: "Dashboard",
+      icon: "DB",
+      end: true,
+      className: "text-slate-200 hover:bg-[#20355a]",
+      activeClassName: "bg-[#d4af37] text-[#1a2740]"
+    },
+    {
+      to: "/dashboard/admin/employees",
+      label: "Employees",
+      icon: "EM",
+      className: "text-slate-200 hover:bg-[#20355a]",
+      activeClassName: "bg-[#d4af37] text-[#1a2740]"
+    },
+    {
+      to: "/dashboard/admin/departments",
+      label: "Departments",
+      icon: "DP",
+      className: "text-slate-200 hover:bg-[#20355a]",
+      activeClassName: "bg-[#d4af37] text-[#1a2740]"
+    },
+    {
+      to: "/dashboard/admin/reports",
+      label: "Reports",
+      icon: "RP",
+      className: "text-slate-200 hover:bg-[#20355a]",
+      activeClassName: "bg-[#d4af37] text-[#1a2740]"
+    }
+  ];
 
   return (
-    <div className="page-shell">
-      <div className="surface p-6">
-        <header className="flex flex-col gap-4 border-b border-brand-100 pb-4 md:flex-row md:items-center md:justify-between">
+    <div className="mx-auto grid max-w-350 gap-4 px-4 py-6 md:grid-cols-[260px_1fr]">
+      <Sidebar
+        title="Admin"
+        subtitle="Control Center"
+        links={links}
+        className="bg-[#16233b] text-[#f6d98b]"
+      />
+
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+        <header className="flex flex-col gap-3 border-b border-slate-200 px-6 py-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">
-              ADMIN DASHBOARD
-            </p>
-            <h1 className="text-2xl font-bold text-brand-900">
-              Ha-Meem Operations Control
-            </h1>
-            <p className="mt-1 text-sm text-slate-600">Signed in as {user?.name || "Admin"}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Admin Panel</p>
+            <h1 className="text-2xl font-bold text-slate-900">Ha-Meem Operations Control</h1>
           </div>
-          <div className="flex gap-2">
-            <Link
-              to="/gate"
-              className="rounded-lg border border-brand-300 px-4 py-2 text-sm font-medium text-brand-700"
-            >
-              Gate
-            </Link>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+              {user?.name || "Admin"}
+            </span>
             <button
               type="button"
               onClick={logout}
-              className="rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-600"
+              className="rounded-lg bg-[#16233b] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#20355a]"
             >
               Logout
             </button>
           </div>
         </header>
-        <nav className="mt-4 flex flex-wrap gap-2 border-b border-brand-100 pb-4">
-          <NavLink
-            to="/dashboard/admin"
-            end
-            className={({ isActive }) =>
-              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                isActive
-                  ? "bg-brand-700 text-white"
-                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
-              }`
-            }
-          >
-            Home
-          </NavLink>
-          <NavLink
-            to="/dashboard/admin/employees"
-            className={({ isActive }) =>
-              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                isActive
-                  ? "bg-brand-700 text-white"
-                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
-              }`
-            }
-          >
-            Employees
-          </NavLink>
-          <NavLink
-            to="/dashboard/admin/departments"
-            className={({ isActive }) =>
-              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                isActive
-                  ? "bg-brand-700 text-white"
-                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
-              }`
-            }
-          >
-            Departments
-          </NavLink>
-          <NavLink
-            to="/dashboard/admin/reports"
-            className={({ isActive }) =>
-              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                isActive
-                  ? "bg-brand-700 text-white"
-                  : "border border-brand-300 text-brand-700 hover:bg-brand-50"
-              }`
-            }
-          >
-            Reports
-          </NavLink>
-        </nav>
-        <main className="pt-6">
+
+        <main className="p-6">
           <Outlet />
         </main>
       </div>

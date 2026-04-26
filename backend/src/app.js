@@ -14,7 +14,9 @@ import departmentRouter from "./modules/departments/department.routes.js";
 import gateRouter from "./modules/attendance/gate.routes.js";
 import employeeRouter from "./modules/employees/employee.routes.js";
 import leaveRouter from "./modules/leaves/leave.routes.js";
+import exportRouter from "./modules/reports/export.routes.js";
 import registrationRouter from "./modules/employees/registration.routes.js";
+import reportRouter from "./modules/reports/report.routes.js";
 import rosterRouter from "./modules/roster/roster.routes.js";
 import ruleRouter from "./modules/rules/rule.routes.js";
 import shiftRouter from "./modules/shifts/shift.routes.js";
@@ -115,6 +117,8 @@ app.use("/api/registrations", registrationRouter);
 app.use("/api/shifts", shiftRouter);
 app.use("/api/rules", ruleRouter);
 app.use("/api/roster", rosterRouter);
+app.use("/api/reports", reportRouter);
+app.use("/api/export", exportRouter);
 
 app.get("/api/v1/profile", authenticate, (req, res) => {
   return success(res, req.user, "Authenticated user profile");
