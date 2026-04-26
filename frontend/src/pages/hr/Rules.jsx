@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import axiosInstance from "../../api/axiosInstance";
+import { toDateInputInZone } from "../../utils/dateTime";
 import { formatDate } from "../../utils/formatDate";
 
 const defaultForm = {
@@ -30,7 +31,7 @@ const toDateInput = (value) => {
     return "";
   }
 
-  return date.toISOString().slice(0, 10);
+  return toDateInputInZone(date);
 };
 
 const Rules = () => {

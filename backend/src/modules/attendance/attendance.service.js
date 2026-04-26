@@ -64,7 +64,7 @@ const normalizeDate = (value) => {
     return null;
   }
 
-  date.setUTCHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
   return date;
 };
 
@@ -75,7 +75,7 @@ const getDayBounds = (value) => {
   }
 
   const end = new Date(start);
-  end.setUTCDate(end.getUTCDate() + 1);
+  end.setDate(end.getDate() + 1);
 
   return { start, end };
 };
@@ -95,8 +95,8 @@ const parseMonth = (month) => {
     return null;
   }
 
-  const start = new Date(Date.UTC(year, monthIndex, 1, 0, 0, 0, 0));
-  const end = new Date(Date.UTC(year, monthIndex + 1, 1, 0, 0, 0, 0));
+  const start = new Date(year, monthIndex, 1, 0, 0, 0, 0);
+  const end = new Date(year, monthIndex + 1, 1, 0, 0, 0, 0);
 
   return { start, end };
 };
@@ -200,7 +200,7 @@ const buildAttendanceFilter = (filters = {}, userId = null) => {
     }
 
     const endExclusive = new Date(endDate);
-    endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+    endExclusive.setDate(endExclusive.getDate() + 1);
 
     where.date = {
       gte: start,
@@ -315,7 +315,7 @@ export const getMySummary = async (userId, month) => {
 export const getTodayAttendance = async () => {
   const start = normalizeDate(new Date());
   const end = new Date(start);
-  end.setUTCDate(end.getUTCDate() + 1);
+  end.setDate(end.getDate() + 1);
 
   const [employees, attendanceRows] = await Promise.all([
     prisma.user.findMany({

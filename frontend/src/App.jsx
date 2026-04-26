@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import AdminLayout from "./layouts/AdminLayout";
 import EmployeeLayout from "./layouts/EmployeeLayout";
@@ -22,8 +23,30 @@ import Gate from "./pages/Gate";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import { useAuthStore } from "./store/authStore";
+
+const UNAUTHORIZED_EVENT = "hm:unauthorized";
 
 const App = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      useAuthStore.getState().logout();
+
+      if (location.pathname !== "/login") {
+        navigate("/login", { replace: true });
+      }
+    };
+
+    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+
+    return () => {
+      window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    };
+  }, [location.pathname, navigate]);
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/gate" replace />} />

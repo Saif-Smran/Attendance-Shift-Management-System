@@ -2,11 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import axiosInstance from "../../api/axiosInstance";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import { toDateInputInZone, toDateKeyInZone } from "../../utils/dateTime";
 import { formatDate } from "../../utils/formatDate";
 
 const toMonthInput = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-
-const toDateKey = (date) => date.toISOString().slice(0, 10);
 
 const parseMonth = (monthValue) => {
   const [yearRaw, monthRaw] = String(monthValue || "").split("-");
@@ -30,17 +29,42 @@ const MyShift = () => {
   const [month, setMonth] = useState(toMonthInput(new Date()));
   const [loading, setLoading] = useState(true);
   const [rosterItems, setRosterItems] = useState([]);
+  const [attendanceByDate, setAttendanceByDate] = useState({});
   const [feedback, setFeedback] = useState("");
 
-  const loadRoster = async () => {
+  const loadRoster = async (targetMonth = month) => {
     setLoading(true);
 
     try {
-      const response = await axiosInstance.get("/roster/me");
-      setRosterItems(response.data?.data?.items || []);
+      const { first, last } = parseMonth(targetMonth);
+      const [rosterResponse, attendanceResponse] = await Promise.all([
+        axiosInstance.get("/roster/me"),
+        axiosInstance.get("/attendance/me", {
+          params: {
+            from: toDateInputInZone(first),
+            to: toDateInputInZone(last),
+            page: 1,
+            limit: 100
+          }
+        })
+      ]);
+
+      setRosterItems(rosterResponse.data?.data?.items || []);
+      const attendanceMap = (attendanceResponse.data?.data?.items || []).reduce(
+        (accumulator, item) => {
+          const key = toDateKeyInZone(item.date);
+          if (key) {
+            accumulator[key] = item;
+          }
+          return accumulator;
+        },
+        {}
+      );
+      setAttendanceByDate(attendanceMap);
       setFeedback("");
     } catch (error) {
       setRosterItems([]);
+      setAttendanceByDate({});
       setFeedback(error.response?.data?.message || "Failed to load roster details");
     } finally {
       setLoading(false);
@@ -48,19 +72,38 @@ const MyShift = () => {
   };
 
   useEffect(() => {
-    loadRoster();
+    loadRoster(month);
   }, []);
 
-  const currentShift = useMemo(() => {
-    const todayKey = toDateKey(new Date());
+  useEffect(() => {
+    loadRoster(month);
+  }, [month]);
 
-    const todayItem = rosterItems.find((item) => toDateKey(new Date(item.date)) === todayKey);
+  const currentShift = useMemo(() => {
+    const todayKey = toDateKeyInZone(new Date());
+
+    const todayItem = rosterItems.find((item) => toDateKeyInZone(new Date(item.date)) === todayKey);
     if (todayItem) {
       return todayItem;
     }
 
+    const todayDate = new Date();
+    const workedFriday =
+      todayDate.getDay() === 5 &&
+      !todayItem &&
+      Boolean(attendanceByDate[todayKey]?.clockIn);
+
+    if (workedFriday) {
+      return {
+        shiftName: "Worked Friday",
+        date: todayDate,
+        shiftStart: attendanceByDate[todayKey]?.clockIn,
+        shiftEnd: attendanceByDate[todayKey]?.clockOut
+      };
+    }
+
     return rosterItems.find((item) => new Date(item.date).getTime() >= Date.now()) || null;
-  }, [rosterItems]);
+  }, [attendanceByDate, rosterItems]);
 
   const monthCalendar = useMemo(() => {
     const { first, last } = parseMonth(month);
@@ -81,19 +124,22 @@ const MyShift = () => {
 
     for (let day = 1; day <= totalDays; day += 1) {
       const date = new Date(first.getFullYear(), first.getMonth(), day);
-      const key = toDateKey(date);
+      const key = toDateKeyInZone(date);
       const roster = workingDays.get(key);
+      const attendance = attendanceByDate[key];
+      const workedFriday = !roster && date.getDay() === 5 && Boolean(attendance?.clockIn);
 
       cells.push({
         type: "day",
         key,
         day,
-        roster
+        roster,
+        workedFriday
       });
     }
 
     return cells;
-  }, [month, rosterItems]);
+  }, [attendanceByDate, month, rosterItems]);
 
   return (
     <section className="space-y-5">
@@ -127,11 +173,11 @@ const MyShift = () => {
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Start</p>
-              <p className="mt-1 text-lg font-semibold text-slate-900">{currentShift.shiftStart || "-"}</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{currentShift.shiftStart ? new Date(currentShift.shiftStart).toLocaleTimeString("en-BD", { hour: "2-digit", minute: "2-digit" }) : "-"}</p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs uppercase tracking-[0.12em] text-slate-500">End</p>
-              <p className="mt-1 text-lg font-semibold text-slate-900">{currentShift.shiftEnd || "-"}</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{currentShift.shiftEnd ? new Date(currentShift.shiftEnd).toLocaleTimeString("en-BD", { hour: "2-digit", minute: "2-digit" }) : "-"}</p>
             </div>
           </div>
         )}
@@ -167,7 +213,7 @@ const MyShift = () => {
               return <div key={cell.key} className="h-20 rounded-lg bg-transparent" />;
             }
 
-            const isWorking = Boolean(cell.roster);
+            const isWorking = Boolean(cell.roster) || Boolean(cell.workedFriday);
 
             return (
               <div
@@ -179,8 +225,8 @@ const MyShift = () => {
                 }`}
               >
                 <p className="text-sm font-semibold text-slate-700">{cell.day}</p>
-                <p className={`mt-1 text-[11px] font-medium ${isWorking ? "text-teal-700" : "text-slate-500"}`}>
-                  {isWorking ? cell.roster.shiftName : "Rest"}
+                  <p className={`mt-1 text-[11px] font-medium ${isWorking ? "text-teal-700" : "text-slate-500"}`}>
+                  {cell.roster ? cell.roster.shiftName : cell.workedFriday ? "Worked Friday" : "Rest"}
                 </p>
               </div>
             );

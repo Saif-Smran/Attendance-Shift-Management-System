@@ -2,6 +2,7 @@ import { prisma } from "../../config/db.js";
 import { generateEmployeeCode } from "../../utils/employeeId.js";
 
 const REGISTRATION_STATUS_SET = new Set(["PENDING", "APPROVED", "REJECTED"]);
+const DEFAULT_ROSTER_DAYS = 30;
 
 const toError = (message, statusCode = 400) => {
   const error = new Error(message);
@@ -69,6 +70,73 @@ const resolveEmployeeCategory = (requestedRole, requestedEmployeeCategory) => {
   }
 
   return normalizedCategory;
+};
+
+const startOfLocalDay = (value = new Date()) => {
+  const date = value instanceof Date ? new Date(value) : new Date(String(value || ""));
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const addDays = (value, days) => {
+  const next = new Date(value);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+
+const isFriday = (value) => value.getDay() === 5;
+
+const resolveDefaultShiftIds = async (transaction) => {
+  const shifts = await transaction.shift.findMany({
+    where: {
+      OR: [{ type: "GENERAL_DAY" }, { type: "FRIDAY" }]
+    },
+    select: {
+      id: true,
+      type: true,
+      name: true
+    }
+  });
+
+  const generalShift =
+    shifts.find((shift) => shift.type === "GENERAL_DAY") ||
+    shifts.find((shift) => shift.name.toLowerCase() === "general day");
+  const fridayShift =
+    shifts.find((shift) => shift.type === "FRIDAY") ||
+    shifts.find((shift) => shift.name.toLowerCase() === "friday");
+
+  if (!generalShift) {
+    throw toError("Default GENERAL_DAY shift is not configured", 500);
+  }
+
+  if (!fridayShift) {
+    throw toError("Default FRIDAY shift is not configured", 500);
+  }
+
+  return {
+    generalShiftId: generalShift.id,
+    fridayShiftId: fridayShift.id
+  };
+};
+
+const buildDefaultRosterRows = (startDate, generalShiftId, fridayShiftId) => {
+  const rows = [];
+
+  for (let index = 0; index < DEFAULT_ROSTER_DAYS; index += 1) {
+    const date = addDays(startDate, index);
+    rows.push({
+      shiftId: isFriday(date) ? fridayShiftId : generalShiftId,
+      date,
+      isRamadan: false
+    });
+  }
+
+  return rows;
 };
 
 const getNextEmployeeCode = async (role, employeeCategory) => {
@@ -214,6 +282,21 @@ export const approveRegistration = async (id, reviewerId) => {
   );
 
   const result = await prisma.$transaction(async (transaction) => {
+    const approvedAt = startOfLocalDay(new Date());
+
+    let defaultShiftId = null;
+    let defaultRosterRows = [];
+
+    if (registration.requestedRole === "EMPLOYEE") {
+      const { generalShiftId, fridayShiftId } = await resolveDefaultShiftIds(transaction);
+      defaultShiftId = generalShiftId;
+      defaultRosterRows = buildDefaultRosterRows(
+        approvedAt,
+        generalShiftId,
+        fridayShiftId
+      );
+    }
+
     const user = await transaction.user.create({
       data: {
         employeeCode,
@@ -223,9 +306,22 @@ export const approveRegistration = async (id, reviewerId) => {
         password: registration.password,
         role: registration.requestedRole,
         departmentId: registration.departmentId,
+        shiftId: defaultShiftId,
         status: "ACTIVE"
       }
     });
+
+    if (defaultRosterRows.length > 0) {
+      const rows = defaultRosterRows.map((row) => ({
+        ...row,
+        userId: user.id
+      }));
+
+      await transaction.roster.createMany({
+        data: rows,
+        skipDuplicates: true
+      });
+    }
 
     const updatedRegistration = await transaction.registration.update({
       where: {

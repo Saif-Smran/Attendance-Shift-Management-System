@@ -1,6 +1,7 @@
 import { prisma } from "../../config/db.js";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const pad = (value) => String(value).padStart(2, "0");
 
 const toError = (message, statusCode = 400) => {
   const error = new Error(message);
@@ -15,17 +16,25 @@ const normalizeDate = (value) => {
     return null;
   }
 
-  date.setUTCHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
   return date;
 };
 
 const formatDateKey = (value) => {
   const date = normalizeDate(value);
-  return date ? date.toISOString().slice(0, 10) : null;
+  return date
+    ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+    : null;
 };
 
 const dateFromKey = (key) => {
-  const date = new Date(`${key}T00:00:00.000Z`);
+  const [yearRaw, monthRaw, dayRaw] = String(key || "").split("-");
+  const year = Number.parseInt(yearRaw, 10);
+  const month = Number.parseInt(monthRaw, 10);
+  const day = Number.parseInt(dayRaw, 10);
+  const date = new Date(year, month - 1, day);
+
+  date.setHours(0, 0, 0, 0);
   if (Number.isNaN(date.getTime())) {
     return null;
   }
@@ -50,7 +59,7 @@ const buildDateRange = (startDate, endDate) => {
 
   while (cursor <= end) {
     dates.push(new Date(cursor));
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
+    cursor.setDate(cursor.getDate() + 1);
   }
 
   return dates;
@@ -91,8 +100,8 @@ const getStreakForDate = (keysSet, targetKey) => {
 
   const backward = new Date(target);
   while (true) {
-    backward.setUTCDate(backward.getUTCDate() - 1);
-    const key = backward.toISOString().slice(0, 10);
+    backward.setDate(backward.getDate() - 1);
+    const key = formatDateKey(backward);
 
     if (!keysSet.has(key)) {
       break;
@@ -103,8 +112,8 @@ const getStreakForDate = (keysSet, targetKey) => {
 
   const forward = new Date(target);
   while (true) {
-    forward.setUTCDate(forward.getUTCDate() + 1);
-    const key = forward.toISOString().slice(0, 10);
+    forward.setDate(forward.getDate() + 1);
+    const key = formatDateKey(forward);
 
     if (!keysSet.has(key)) {
       break;
@@ -133,6 +142,37 @@ const sanitizeRoster = (roster, streakDays = 0) => ({
   consecutiveDays: streakDays,
   nearLimitWarning: streakDays >= 12
 });
+
+const buildDefaultMyRosterItems = ({ userId, generalShift, fridayShift, days = 30 }) => {
+  const start = normalizeDate(new Date());
+  const items = [];
+
+  for (let index = 0; index < days; index += 1) {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+
+    const shift = date.getDay() === 5 ? fridayShift : generalShift;
+
+    items.push(
+      sanitizeRoster(
+        {
+          id: `auto-${userId}-${formatDateKey(date)}`,
+          userId,
+          shiftId: shift.id,
+          date,
+          isRamadan: false,
+          shift,
+          user: {
+            id: userId
+          }
+        },
+        index + 1
+      )
+    );
+  }
+
+  return items;
+};
 
 const ensureUserAndShift = async (userId, shiftId) => {
   const [user, shift] = await Promise.all([
@@ -168,7 +208,7 @@ export const getRoster = async (filters = {}) => {
     }
 
     const end = new Date(endDateFilter);
-    end.setUTCDate(end.getUTCDate() + 1);
+    end.setDate(end.getDate() + 1);
 
     where.date = {
       gte: startDateFilter,
@@ -177,7 +217,7 @@ export const getRoster = async (filters = {}) => {
   } else if (dateFilter) {
     const start = new Date(dateFilter);
     const end = new Date(dateFilter);
-    end.setUTCDate(end.getUTCDate() + 1);
+    end.setDate(end.getDate() + 1);
 
     where.date = {
       gte: start,
@@ -271,6 +311,63 @@ export const getMyRoster = async (userId) => {
     },
     orderBy: [{ date: "asc" }]
   });
+
+  if (rosters.length === 0) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+        shift: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            startTime: true,
+            endTime: true
+          }
+        }
+      }
+    });
+
+    if (user?.role === "EMPLOYEE") {
+      const [generalShift, fridayShift] = await Promise.all([
+        user.shift
+          ? Promise.resolve(user.shift)
+          : prisma.shift.findFirst({
+              where: { type: "GENERAL_DAY" },
+              select: {
+                id: true,
+                name: true,
+                type: true,
+                startTime: true,
+                endTime: true
+              }
+            }),
+        prisma.shift.findFirst({
+          where: { type: "FRIDAY" },
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            startTime: true,
+            endTime: true
+          }
+        })
+      ]);
+
+      if (generalShift && fridayShift) {
+        return {
+          items: buildDefaultMyRosterItems({
+            userId,
+            generalShift,
+            fridayShift,
+            days: 30
+          })
+        };
+      }
+    }
+  }
 
   const keySet = new Set(rosters.map((entry) => formatDateKey(entry.date)));
 

@@ -4,6 +4,7 @@ import axiosInstance from "../../api/axiosInstance";
 import Badge from "../../components/ui/Badge";
 import Table from "../../components/ui/Table";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import { formatTimeInZone, toDateKeyInZone } from "../../utils/dateTime";
 import { formatDate } from "../../utils/formatDate";
 
 const toMonthInput = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -17,8 +18,8 @@ const getMonthRange = (monthValue) => {
   const end = new Date(Date.UTC(year, month, 0));
 
   return {
-    from: start.toISOString().slice(0, 10),
-    to: end.toISOString().slice(0, 10)
+    from: toDateKeyInZone(start),
+    to: toDateKeyInZone(end)
   };
 };
 
@@ -33,10 +34,7 @@ const formatTime = (value) => {
     return "-";
   }
 
-  return date.toLocaleTimeString("en-BD", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  return formatTimeInZone(date);
 };
 
 const MyAttendance = () => {

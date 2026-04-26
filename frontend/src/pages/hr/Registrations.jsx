@@ -128,7 +128,7 @@ const Registrations = () => {
     setActionLoading(true);
 
     try {
-      const response = await axiosInstance.patch(
+      const response = await axiosInstance.put(
         `/registrations/${selectedRegistration.id}/approve`
       );
       const employeeCode = response.data?.data?.employee?.employeeCode || "N/A";
@@ -165,7 +165,7 @@ const Registrations = () => {
     setActionLoading(true);
 
     try {
-      await axiosInstance.patch(`/registrations/${selectedRegistration.id}/reject`, {
+      await axiosInstance.put(`/registrations/${selectedRegistration.id}/reject`, {
         reason: rejectReason.trim()
       });
 
@@ -209,7 +209,7 @@ const Registrations = () => {
     {
       key: "department",
       label: "Department",
-      render: (row) => row.departmentName || "-"
+      render: (row) => row.departmentName || "Not specified"
     },
     {
       key: "createdAt",

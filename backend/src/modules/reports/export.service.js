@@ -17,6 +17,7 @@ const REPORT_TITLE_MAP = {
   ramadan: "Ramadan Report",
   "roster-compliance": "Roster Compliance Report"
 };
+const EXPORT_TIME_ZONE = "Asia/Dhaka";
 
 const toError = (message, statusCode = 400) => {
   const error = new Error(message);
@@ -31,9 +32,28 @@ const humanizeKey = (key) =>
     .replace(/^./, (char) => char.toUpperCase())
     .trim();
 
-const normalizeValue = (value) => {
+const formatDateOnly = (value) =>
+  new Intl.DateTimeFormat("en-BD", {
+    timeZone: EXPORT_TIME_ZONE,
+    year: "numeric",
+    month: "short",
+    day: "2-digit"
+  }).format(value);
+
+const formatDateTime = (value) =>
+  new Intl.DateTimeFormat("en-BD", {
+    timeZone: EXPORT_TIME_ZONE,
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(value);
+
+const normalizeValue = (key, value) => {
   if (value instanceof Date) {
-    return value.toISOString();
+    const normalizedKey = String(key || "").toLowerCase();
+    return normalizedKey.includes("date") ? formatDateOnly(value) : formatDateTime(value);
   }
 
   if (Array.isArray(value)) {
@@ -80,7 +100,7 @@ export const exportToExcel = (type, data = []) => {
 
   const keys = safeRows.length > 0 ? Object.keys(safeRows[0]) : [];
   const header = keys.map((key) => humanizeKey(key));
-  const bodyRows = safeRows.map((row) => keys.map((key) => normalizeValue(row[key])));
+  const bodyRows = safeRows.map((row) => keys.map((key) => normalizeValue(key, row[key])));
 
   const worksheet = xlsx.utils.aoa_to_sheet([
     ["Ha-Meem Group"],
@@ -115,13 +135,13 @@ export const exportToPDF = (type, data = [], filters = {}) => {
   const month = filters.month || "-";
 
   doc.setFontSize(9);
-  doc.text(`Generated: ${new Date().toISOString()}`, 40, 80);
+  doc.text(`Generated: ${formatDateTime(new Date())}`, 40, 80);
   doc.text(`From: ${from}   To: ${to}   Month: ${month}`, 40, 94);
 
   autoTable(doc, {
     startY: 108,
     head: [keys.map((key) => humanizeKey(key))],
-    body: safeRows.map((row) => keys.map((key) => String(normalizeValue(row[key])))),
+    body: safeRows.map((row) => keys.map((key) => String(normalizeValue(key, row[key])))),
     styles: {
       fontSize: 8,
       cellPadding: 4

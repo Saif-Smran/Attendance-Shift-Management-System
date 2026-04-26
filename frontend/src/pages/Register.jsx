@@ -191,7 +191,11 @@ const Register = () => {
               className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none focus:border-brand-500 disabled:bg-slate-100"
             >
               <option value="">
-                {isLoadingDepartments ? "Loading departments..." : "Select department"}
+                {isLoadingDepartments
+                  ? "Loading departments..."
+                  : departments.length > 0
+                    ? "Select department"
+                    : "No departments available yet"}
               </option>
               {departments.map((department) => (
                 <option key={department.id} value={department.id}>
@@ -199,6 +203,11 @@ const Register = () => {
                 </option>
               ))}
             </select>
+            {!isLoadingDepartments && departments.length === 0 && (
+              <p className="mt-1 text-xs text-amber-700">
+                Departments are not configured yet. You can still register and HR can assign department later.
+              </p>
+            )}
           </label>
 
           <label className="block text-sm font-medium text-slate-700 md:col-span-1">

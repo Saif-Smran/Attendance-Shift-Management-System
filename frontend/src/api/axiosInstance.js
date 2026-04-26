@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const AUTH_STORAGE_KEY = "hm_auth";
+const UNAUTHORIZED_EVENT = "hm:unauthorized";
 
 const readAuthState = () => {
   if (typeof window === "undefined") {
@@ -36,12 +37,14 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error?.response?.status === 401 && typeof window !== "undefined") {
-      window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    const status = error?.response?.status;
+    const requestUrl = error?.config?.url || "";
+    const isAuthEndpoint =
+      requestUrl.includes("/auth/login") || requestUrl.includes("/auth/refresh");
 
-      if (window.location.pathname !== "/login") {
-        window.location.assign("/login");
-      }
+    if (status === 401 && !isAuthEndpoint && typeof window !== "undefined") {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
+      window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
     }
 
     return Promise.reject(error);

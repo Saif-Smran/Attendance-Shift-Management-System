@@ -20,7 +20,7 @@ const normalizeDate = (value) => {
     return null;
   }
 
-  date.setUTCHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
   return date;
 };
 
@@ -48,7 +48,7 @@ const parseDateRange = (from, to) => {
   }
 
   const endExclusive = new Date(endStart);
-  endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+  endExclusive.setDate(endExclusive.getDate() + 1);
 
   return {
     gte: start,
@@ -71,8 +71,8 @@ const parseMonthRange = (month) => {
     throw toError("month must be in YYYY-MM format", 400);
   }
 
-  const start = new Date(Date.UTC(year, monthIndex, 1, 0, 0, 0, 0));
-  const end = new Date(Date.UTC(year, monthIndex + 1, 1, 0, 0, 0, 0));
+  const start = new Date(year, monthIndex, 1, 0, 0, 0, 0);
+  const end = new Date(year, monthIndex + 1, 1, 0, 0, 0, 0);
 
   return { start, end };
 };
@@ -326,20 +326,31 @@ export const getRosterComplianceReport = async () => {
   return employees.map((employee) => {
     let consecutiveDays = 0;
     const rosterDateSet = new Set(
-      employee.rosters.map((item) => normalizeDate(item.date)?.toISOString().slice(0, 10))
+      employee.rosters.map((item) => {
+        const date = normalizeDate(item.date);
+        if (!date) {
+          return null;
+        }
+
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+          date.getDate()
+        ).padStart(2, "0")}`;
+      })
     );
 
     const cursor = new Date(today);
 
     while (true) {
-      const key = cursor.toISOString().slice(0, 10);
+      const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(
+        cursor.getDate()
+      ).padStart(2, "0")}`;
 
       if (!rosterDateSet.has(key)) {
         break;
       }
 
       consecutiveDays += 1;
-      cursor.setUTCDate(cursor.getUTCDate() - 1);
+      cursor.setDate(cursor.getDate() - 1);
     }
 
     let status = "OK";

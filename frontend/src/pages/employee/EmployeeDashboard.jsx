@@ -4,15 +4,8 @@ import axiosInstance from "../../api/axiosInstance";
 import Badge from "../../components/ui/Badge";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { useAuthStore } from "../../store/authStore";
+import { toDateKeyInZone, toMonthKeyInZone } from "../../utils/dateTime";
 import { formatDate } from "../../utils/formatDate";
-
-const toDateKey = (date) => date.toISOString().slice(0, 10);
-
-const toMonthKey = (date) => {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
-};
 
 const formatTime = (value) => {
   if (!value) {
@@ -80,6 +73,7 @@ const EmployeeDashboard = () => {
   });
   const [rosterItems, setRosterItems] = useState([]);
   const [myLeaves, setMyLeaves] = useState([]);
+  const [attendanceByDate, setAttendanceByDate] = useState({});
   const [leaveForm, setLeaveForm] = useState({
     fromDate: "",
     toDate: "",
@@ -99,11 +93,14 @@ const EmployeeDashboard = () => {
     setLoading(true);
 
     const now = new Date();
-    const today = toDateKey(now);
-    const month = toMonthKey(now);
+    const today = toDateKeyInZone(now);
+    const month = toMonthKeyInZone(now);
+    const weekStart = getWeekStart(now);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
 
     try {
-      const [todayResponse, summaryResponse, rosterResponse, leavesResponse] = await Promise.all([
+      const [todayResponse, summaryResponse, rosterResponse, leavesResponse, weekAttendanceResponse] = await Promise.all([
         axiosInstance.get("/attendance/me", {
           params: {
             date: today,
@@ -122,6 +119,14 @@ const EmployeeDashboard = () => {
             page: 1,
             limit: 3
           }
+        }),
+        axiosInstance.get("/attendance/me", {
+          params: {
+            from: toDateKeyInZone(weekStart),
+            to: toDateKeyInZone(weekEnd),
+            page: 1,
+            limit: 100
+          }
         })
       ]);
 
@@ -136,6 +141,17 @@ const EmployeeDashboard = () => {
       });
       setRosterItems(rosterResponse.data?.data?.items || []);
       setMyLeaves(leavesResponse.data?.data?.items || []);
+      const attendanceMap = (weekAttendanceResponse.data?.data?.items || []).reduce(
+        (accumulator, item) => {
+          const key = toDateKeyInZone(item.date);
+          if (key) {
+            accumulator[key] = item;
+          }
+          return accumulator;
+        },
+        {}
+      );
+      setAttendanceByDate(attendanceMap);
       setFeedback({ type: "", text: "" });
     } catch (error) {
       setFeedback({
@@ -146,6 +162,7 @@ const EmployeeDashboard = () => {
       setSummary({ presentDays: 0, lateDays: 0, absentDays: 0, otHours: 0 });
       setRosterItems([]);
       setMyLeaves([]);
+      setAttendanceByDate({});
     } finally {
       setLoading(false);
     }
@@ -162,20 +179,22 @@ const EmployeeDashboard = () => {
     return Array.from({ length: 7 }, (_, index) => {
       const day = new Date(weekStart);
       day.setDate(weekStart.getDate() + index);
-      const key = toDateKey(day);
+      const key = toDateKeyInZone(day);
 
-      const item = rosterItems.find((entry) => toDateKey(new Date(entry.date)) === key);
+      const item = rosterItems.find((entry) => toDateKeyInZone(new Date(entry.date)) === key);
+      const attendance = attendanceByDate[key];
+      const hasWorkedFriday = !item && day.getDay() === 5 && Boolean(attendance?.clockIn);
 
       return {
         key,
         dayLabel: day.toLocaleDateString("en-BD", { weekday: "short" }),
-        shiftName: item?.shiftName || "Rest Day",
-        start: item?.shiftStart || "-",
-        end: item?.shiftEnd || "-",
-        isToday: key === toDateKey(new Date())
+        shiftName: hasWorkedFriday ? "Worked Friday" : item?.shiftName || "Rest Day",
+        start: hasWorkedFriday ? formatTime(attendance.clockIn) : item?.shiftStart || "-",
+        end: hasWorkedFriday ? formatTime(attendance.clockOut) : item?.shiftEnd || "-",
+        isToday: key === toDateKeyInZone(new Date())
       };
     });
-  }, [rosterItems]);
+  }, [attendanceByDate, rosterItems]);
 
   const todayWorkMinutes = useMemo(() => {
     if (!todayAttendance?.clockIn) {

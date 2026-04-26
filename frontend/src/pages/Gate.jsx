@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import axiosInstance from "../api/axiosInstance";
+import { APP_TIME_ZONE } from "../utils/dateTime";
 
 const Gate = () => {
   const [form, setForm] = useState({
@@ -52,6 +53,7 @@ const Gate = () => {
 
   const timeText = useMemo(() => {
     return currentTime.toLocaleTimeString("en-BD", {
+      timeZone: APP_TIME_ZONE,
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
@@ -61,6 +63,7 @@ const Gate = () => {
 
   const dateText = useMemo(() => {
     return currentTime.toLocaleDateString("en-BD", {
+      timeZone: APP_TIME_ZONE,
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -74,6 +77,7 @@ const Gate = () => {
     }
 
     return new Date(value).toLocaleString("en-BD", {
+      timeZone: APP_TIME_ZONE,
       year: "numeric",
       month: "short",
       day: "2-digit",

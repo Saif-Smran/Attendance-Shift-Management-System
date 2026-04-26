@@ -1,3 +1,5 @@
+import { APP_TIME_ZONE } from "./dateTime";
+
 export const formatDate = (
   inputDate,
   locale = "en-BD",
@@ -17,5 +19,8 @@ export const formatDate = (
     return "-";
   }
 
-  return new Intl.DateTimeFormat(locale, options).format(date);
+  return new Intl.DateTimeFormat(locale, {
+    ...options,
+    timeZone: APP_TIME_ZONE
+  }).format(date);
 };

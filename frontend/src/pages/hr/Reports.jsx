@@ -4,6 +4,7 @@ import axiosInstance from "../../api/axiosInstance";
 import Badge from "../../components/ui/Badge";
 import Table from "../../components/ui/Table";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import { toDateKeyInZone, toMonthKeyInZone } from "../../utils/dateTime";
 import { formatDate } from "../../utils/formatDate";
 
 const REPORT_TABS = [
@@ -93,13 +94,13 @@ const formatTime = (value) => {
 };
 
 const getInitialFilters = () => {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = toDateKeyInZone(new Date());
   return {
     departmentId: "",
     employeeId: "",
     from: today,
     to: today,
-    month: today.slice(0, 7)
+    month: toMonthKeyInZone(new Date())
   };
 };
 
@@ -299,7 +300,7 @@ const Reports = () => {
       const link = document.createElement("a");
       link.href = url;
       const ext = format === "excel" ? "xlsx" : "pdf";
-      link.download = `HaMeem_${toExportFileName(activeTab)}_${new Date().toISOString().slice(0, 7)}.${ext}`;
+      link.download = `HaMeem_${toExportFileName(activeTab)}_${toMonthKeyInZone(new Date())}.${ext}`;
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {

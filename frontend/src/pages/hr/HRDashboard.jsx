@@ -13,6 +13,7 @@ import {
 
 import axiosInstance from "../../api/axiosInstance";
 import { useAuthStore } from "../../store/authStore";
+import { toDateKeyInZone } from "../../utils/dateTime";
 import { formatDate } from "../../utils/formatDate";
 
 const initialSummary = {
@@ -105,7 +106,7 @@ const HRDashboard = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `hr-weekly-attendance-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `hr-weekly-attendance-${toDateKeyInZone(new Date())}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };

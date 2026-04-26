@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import axiosInstance from "../../api/axiosInstance";
 import Badge from "../../components/ui/Badge";
+import { toDateInputInZone, toDateKeyInZone } from "../../utils/dateTime";
 import { formatDate } from "../../utils/formatDate";
 
 const SHIFT_TYPE_COLORS = {
@@ -14,7 +15,7 @@ const SHIFT_TYPE_COLORS = {
   FRIDAY: "bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200"
 };
 
-const toDateInput = (date) => date.toISOString().slice(0, 10);
+const toDateInput = (date) => toDateInputInZone(date);
 
 const getWeekStart = (date) => {
   const d = new Date(date);
@@ -57,7 +58,8 @@ const Roster = () => {
   const rosterMap = useMemo(() => {
     const map = new Map();
     rosters.forEach((item) => {
-      const key = `${item.userId}::${new Date(item.date).toISOString().slice(0, 10)}`;
+      const dateKey = toDateKeyInZone(item.date);
+      const key = `${item.userId}::${dateKey}`;
       map.set(key, item);
     });
     return map;
