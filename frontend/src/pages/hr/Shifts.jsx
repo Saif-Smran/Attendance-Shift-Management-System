@@ -127,7 +127,7 @@ const Shifts = () => {
 
       <article className="overflow-hidden rounded-xl border border-brand-100 bg-white">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[860px] border-collapse text-sm">
+          <table className="w-full min-w-215 border-collapse text-sm">
             <thead className="bg-brand-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-brand-700">Name</th>

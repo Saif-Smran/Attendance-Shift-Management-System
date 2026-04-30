@@ -46,5 +46,9 @@ export const env = {
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
-  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || "7d"
+  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+  PDF_TEMP_DIR: process.env.PDF_TEMP_DIR || "/tmp",
+  MAX_REPORT_ROWS: toPositiveInt(process.env.MAX_REPORT_ROWS, 50000),
+  EXPORT_TIMEOUT_MS: toPositiveInt(process.env.EXPORT_TIMEOUT_MS, 30000),
+  LOG_LEVEL: process.env.LOG_LEVEL || "info"
 };

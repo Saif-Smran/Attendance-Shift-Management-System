@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
+import "jspdf-autotable";
 import xlsx from "xlsx";
 
 import {
@@ -98,58 +98,100 @@ export const exportToExcel = (type, data = []) => {
   const title = REPORT_TITLE_MAP[reportType] || "Report";
   const safeRows = Array.isArray(data) ? data : [];
 
+  // Validate data before processing
+  if (safeRows.length === 0) {
+    console.warn("Excel export: no data to export", { type });
+    // Create empty sheet with headers only
+  }
+
   const keys = safeRows.length > 0 ? Object.keys(safeRows[0]) : [];
   const header = keys.map((key) => humanizeKey(key));
   const bodyRows = safeRows.map((row) => keys.map((key) => normalizeValue(key, row[key])));
 
-  const worksheet = xlsx.utils.aoa_to_sheet([
-    ["Ha-Meem Group"],
-    [title],
-    [],
-    header,
-    ...bodyRows
-  ]);
+  try {
+    const worksheet = xlsx.utils.aoa_to_sheet([
+      ["Ha-Meem Group"],
+      [title],
+      [],
+      header,
+      ...bodyRows
+    ]);
 
-  const workbook = xlsx.utils.book_new();
-  xlsx.utils.book_append_sheet(workbook, worksheet, title.replace(/\s+/g, "_"));
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, title.replace(/\s+/g, "_"));
 
-  return xlsx.write(workbook, { type: "buffer", bookType: "xlsx" });
+    const buffer = xlsx.write(workbook, { type: "buffer", bookType: "xlsx" });
+    
+    if (!buffer || buffer.length === 0) {
+      throw new Error("Excel buffer generation produced empty result");
+    }
+    
+    return buffer;
+  } catch (err) {
+    console.error("Excel generation failed:", { type, dataLength: safeRows.length, error: err.message });
+    throw toError(`Excel export failed: ${err.message}`, 500);
+  }
 };
 
 export const exportToPDF = (type, data = [], filters = {}) => {
   const reportType = String(type || "").trim().toLowerCase();
   const title = REPORT_TITLE_MAP[reportType] || "Report";
   const safeRows = Array.isArray(data) ? data : [];
+
+  // Validate data before processing
+  if (safeRows.length === 0) {
+    console.warn("PDF export: no data to export", { type });
+    // Continue with empty data to generate PDF with headers only
+  }
+
   const keys = safeRows.length > 0 ? Object.keys(safeRows[0]) : [];
 
-  const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+  try {
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
 
-  doc.setFontSize(16);
-  doc.text("Ha-Meem Group", 40, 40);
+    doc.setFontSize(16);
+    doc.text("Ha-Meem Group", 40, 40);
 
-  doc.setFontSize(12);
-  doc.text(title, 40, 62);
+    doc.setFontSize(12);
+    doc.text(title, 40, 62);
 
-  const from = filters.from || "-";
-  const to = filters.to || "-";
-  const month = filters.month || "-";
+    const from = filters.from || "-";
+    const to = filters.to || "-";
+    const month = filters.month || "-";
 
-  doc.setFontSize(9);
-  doc.text(`Generated: ${formatDateTime(new Date())}`, 40, 80);
-  doc.text(`From: ${from}   To: ${to}   Month: ${month}`, 40, 94);
+    doc.setFontSize(9);
+    doc.text(`Generated: ${formatDateTime(new Date())}`, 40, 80);
+    doc.text(`From: ${from}   To: ${to}   Month: ${month}`, 40, 94);
 
-  autoTable(doc, {
-    startY: 108,
-    head: [keys.map((key) => humanizeKey(key))],
-    body: safeRows.map((row) => keys.map((key) => String(normalizeValue(key, row[key])))),
-    styles: {
-      fontSize: 8,
-      cellPadding: 4
-    },
-    headStyles: {
-      fillColor: [13, 148, 136]
+    doc.autoTable({
+      startY: 108,
+      head: [keys.map((key) => humanizeKey(key))],
+      body: safeRows.map((row) => keys.map((key) => String(normalizeValue(key, row[key])))),
+      styles: {
+        fontSize: 8,
+        cellPadding: 4
+      },
+      headStyles: {
+        fillColor: [13, 148, 136]
+      }
+    });
+
+    // Safe buffer conversion with validation
+    const pdfOutput = doc.output("arraybuffer");
+    
+    if (!pdfOutput) {
+      throw new Error("jsPDF output is null or undefined");
     }
-  });
-
-  return Buffer.from(doc.output("arraybuffer"));
+    
+    const buffer = Buffer.from(pdfOutput);
+    
+    if (!buffer || buffer.length === 0) {
+      throw new Error("PDF buffer generation produced empty result");
+    }
+    
+    return buffer;
+  } catch (err) {
+    console.error("PDF generation failed:", { type, dataLength: safeRows.length, error: err.message });
+    throw toError(`PDF export failed: ${err.message}`, 500);
+  }
 };
