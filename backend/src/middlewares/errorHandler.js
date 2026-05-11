@@ -25,9 +25,23 @@ export const errorHandler = (err, req, res, next) => {
         statusCode = 400;
         message = "Database request failed";
     }
+    // Log full prisma known request error for debugging in non-production
+    if (env.NODE_ENV !== "production") {
+      console.error("Prisma KnownRequestError:", {
+        message: err.message,
+        code: err.code,
+        meta: err.meta,
+        stack: err.stack,
+        path: req?.path,
+        body: req?.body
+      });
+    }
   } else if (err instanceof Prisma.PrismaClientValidationError) {
     statusCode = 400;
     message = "Invalid database payload";
+    if (env.NODE_ENV !== "production") {
+      console.error("Prisma ValidationError:", err.message, err.stack, { path: req?.path, body: req?.body });
+    }
   } else if (err.name === "TokenExpiredError") {
     statusCode = 401;
     message = "Access token expired";

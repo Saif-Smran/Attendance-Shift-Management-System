@@ -7,6 +7,24 @@ const toPositiveInt = (value, fallback) => {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+const toBoolean = (value, fallback) => {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const normalized = value.trim().toLowerCase();
+
+  if (["1", "true", "yes", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["0", "false", "no", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return fallback;
+};
+
 const requiredVars = [
   "DATABASE_URL",
   "REDIS_URL",
@@ -50,5 +68,8 @@ export const env = {
   PDF_TEMP_DIR: process.env.PDF_TEMP_DIR || "/tmp",
   MAX_REPORT_ROWS: toPositiveInt(process.env.MAX_REPORT_ROWS, 50000),
   EXPORT_TIMEOUT_MS: toPositiveInt(process.env.EXPORT_TIMEOUT_MS, 30000),
-  LOG_LEVEL: process.env.LOG_LEVEL || "info"
+  LOG_LEVEL: process.env.LOG_LEVEL || "info",
+  ABSENCE_AUTO_MARK_ENABLED: toBoolean(process.env.ABSENCE_AUTO_MARK_ENABLED, true),
+  ABSENCE_AUTO_MARK_CRON: process.env.ABSENCE_AUTO_MARK_CRON || "59 23 * * *",
+  ABSENCE_AUTO_MARK_TIMEZONE: process.env.ABSENCE_AUTO_MARK_TIMEZONE || "UTC"
 };

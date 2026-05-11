@@ -3,6 +3,7 @@ import { success } from "../../utils/apiResponse.js";
 
 import {
   getAttendance,
+  markAbsentForDate,
   getMyAttendance,
   getMySummary,
   getTodayAttendance
@@ -26,4 +27,10 @@ export const getMySummaryController = asyncHandler(async (req, res) => {
 export const getTodayAttendanceController = asyncHandler(async (req, res) => {
   const result = await getTodayAttendance();
   return success(res, result, "Today's attendance fetched");
+});
+
+export const markAbsentForDateController = asyncHandler(async (req, res) => {
+  const date = req.body?.date || req.query?.date;
+  const result = await markAbsentForDate(date || new Date());
+  return success(res, result, "Absent attendance marked successfully");
 });

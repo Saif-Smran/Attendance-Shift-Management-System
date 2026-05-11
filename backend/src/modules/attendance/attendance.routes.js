@@ -7,7 +7,8 @@ import {
   getAttendanceController,
   getMyAttendanceController,
   getMySummaryController,
-  getTodayAttendanceController
+  getTodayAttendanceController,
+  markAbsentForDateController
 } from "./attendance.controller.js";
 
 const attendanceRouter = Router();
@@ -16,6 +17,7 @@ attendanceRouter.use(authenticate);
 
 attendanceRouter.get("/me/summary", getMySummaryController);
 attendanceRouter.get("/me", getMyAttendanceController);
+attendanceRouter.post("/absences/mark", authorize("ADMIN", "HR"), markAbsentForDateController);
 attendanceRouter.get("/today", authorize("ADMIN", "HR"), getTodayAttendanceController);
 attendanceRouter.get("/", authorize("ADMIN", "HR"), getAttendanceController);
 

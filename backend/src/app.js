@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import cron from "node-cron";
 
 import { prisma } from "./config/db.js";
 import { env } from "./config/env.js";
@@ -20,9 +21,41 @@ import reportRouter from "./modules/reports/report.routes.js";
 import rosterRouter from "./modules/roster/roster.routes.js";
 import ruleRouter from "./modules/rules/rule.routes.js";
 import shiftRouter from "./modules/shifts/shift.routes.js";
+import { markAbsentForDate } from "./modules/attendance/attendance.service.js";
 import { success } from "./utils/apiResponse.js";
 
 const app = express();
+
+if (env.ABSENCE_AUTO_MARK_ENABLED && env.NODE_ENV !== "test") {
+  const isValidCron = cron.validate(env.ABSENCE_AUTO_MARK_CRON);
+
+  if (!isValidCron) {
+    console.error(
+      `[AttendanceScheduler] Invalid cron expression: ${env.ABSENCE_AUTO_MARK_CRON}. Scheduler is disabled.`
+    );
+  } else {
+    cron.schedule(
+      env.ABSENCE_AUTO_MARK_CRON,
+      async () => {
+        try {
+          const result = await markAbsentForDate(new Date());
+          console.log(
+            `[AttendanceScheduler] Marked absences for ${result.date.toISOString().slice(0, 10)}. Newly marked: ${result.newlyMarked}, already marked: ${result.alreadyMarked}.`
+          );
+        } catch (error) {
+          console.error("[AttendanceScheduler] Failed to auto-mark absences:", error);
+        }
+      },
+      {
+        timezone: env.ABSENCE_AUTO_MARK_TIMEZONE
+      }
+    );
+
+    console.log(
+      `[AttendanceScheduler] Enabled with cron '${env.ABSENCE_AUTO_MARK_CRON}' in timezone '${env.ABSENCE_AUTO_MARK_TIMEZONE}'.`
+    );
+  }
+}
 
 const allowedOrigins = env.CORS_ORIGIN.split(",")
   .map((origin) => origin.trim())

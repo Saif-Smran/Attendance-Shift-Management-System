@@ -3,6 +3,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
+import bcrypt from "bcryptjs";
 
 const { Pool } = pg;
 
@@ -87,7 +88,63 @@ const seedShifts = async () => {
 
 const run = async () => {
   await seedShifts();
-  console.log("Seed complete: default shifts are ready.");
+
+  // Seed initial users from password.md (safe-upsert)
+  const USERS = [
+    {
+      name: "Admin User",
+      email: "admin@example.com",
+      employeeCode: "AD-0001",
+      role: "ADMIN",
+      status: "ACTIVE"
+    },
+    {
+      name: "HR User",
+      email: "hr@example.com",
+      employeeCode: "HR-0001",
+      role: "HR",
+      status: "ACTIVE"
+    },
+    {
+      name: "Employee User",
+      email: "employee@example.com",
+      employeeCode: "ST-0001",
+      role: "EMPLOYEE",
+      status: "ACTIVE"
+    }
+  ];
+
+  const PASSWORD_MAP = {
+    "admin@example.com": "Hm#PypkoYAbtE",
+    "hr@example.com": "Hm#hw2CDfoUJX",
+    "employee@example.com": "Hm#6gbRqcYqMp"
+  };
+
+  for (const u of USERS) {
+    const rawPassword = PASSWORD_MAP[u.email] || "Hm#defaultPass123";
+    const hashed = await bcrypt.hash(rawPassword, 10);
+
+    await prisma.user.upsert({
+      where: { email: u.email },
+      update: {
+        name: u.name,
+        employeeCode: u.employeeCode,
+        role: u.role,
+        status: u.status,
+        password: hashed
+      },
+      create: {
+        name: u.name,
+        email: u.email,
+        employeeCode: u.employeeCode,
+        role: u.role,
+        status: u.status,
+        password: hashed
+      }
+    });
+  }
+
+  console.log("Seed complete: default shifts and users are ready.");
 };
 
 run()

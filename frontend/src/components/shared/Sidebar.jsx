@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 
+import { BRAND_LOGO_SRC } from "../../constants/brand";
+
 const Sidebar = ({ title, subtitle, links = [], className = "" }) => {
   const [open, setOpen] = useState(false);
 
@@ -20,8 +22,17 @@ const Sidebar = ({ title, subtitle, links = [], className = "" }) => {
         } rounded-2xl p-4 md:block md:min-h-[calc(100vh-48px)] md:w-64`}
       >
         <div className="mb-5 border-b border-current/20 pb-4">
-          <p className="text-xs uppercase tracking-[0.2em] opacity-80">{subtitle}</p>
-          <h2 className="mt-2 text-xl font-bold">{title}</h2>
+          <div className="flex items-center gap-3">
+            <img
+              src={BRAND_LOGO_SRC}
+              alt="Ha-Meem logo"
+              className="h-10 w-10 rounded-full bg-white object-contain p-1"
+            />
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] opacity-80">{subtitle}</p>
+              <h2 className="mt-2 text-xl font-bold">{title}</h2>
+            </div>
+          </div>
         </div>
 
         <nav className="space-y-2">

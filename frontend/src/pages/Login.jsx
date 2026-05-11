@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import axiosInstance from "../api/axiosInstance";
+import { BRAND_LOGO_SRC } from "../constants/brand";
 import { useAuthStore } from "../store/authStore";
 
 const roleRoutes = {
@@ -67,6 +68,9 @@ const Login = () => {
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="surface w-full max-w-md p-7 sm:p-8">
         <div className="text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 p-2 shadow-sm">
+            <img src={BRAND_LOGO_SRC} alt="Ha-Meem logo" className="h-full w-full object-contain" />
+          </div>
           <p className="text-xs font-bold tracking-[0.22em] text-brand-500">HA-MEEM GROUP</p>
           <h1 className="mt-2 text-2xl font-bold text-brand-900">Attendance & Shift Management</h1>
           <p className="mt-2 text-sm text-slate-600">Sign in with your email or employee ID.</p>

@@ -1,6 +1,7 @@
 import { prisma } from "../../config/db.js";
 
 const VIOLATION_STATUSES = new Set([
+  "ABSENT",
   "LATE",
   "EXCESSIVE_LATE",
   "EARLY_EXIT",
@@ -247,7 +248,9 @@ export const getViolationsReport = async ({ departmentId, from, to } = {}) => {
     minutes:
       row.status === "LATE" || row.status === "EXCESSIVE_LATE"
         ? row.lateMinutes
-        : row.earlyExitMinutes,
+        : row.status === "ABSENT"
+          ? 0
+          : row.earlyExitMinutes,
     missedHours: Number(row.missedHours || 0),
     lateMinutes: row.lateMinutes,
     earlyExitMinutes: row.earlyExitMinutes

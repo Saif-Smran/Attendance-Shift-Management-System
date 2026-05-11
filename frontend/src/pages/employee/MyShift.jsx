@@ -73,10 +73,6 @@ const MyShift = () => {
 
   useEffect(() => {
     loadRoster(month);
-  }, []);
-
-  useEffect(() => {
-    loadRoster(month);
   }, [month]);
 
   const currentShift = useMemo(() => {
@@ -112,7 +108,7 @@ const MyShift = () => {
 
     const workingDays = new Map();
     rosterItems.forEach((item) => {
-      const key = toDateKey(new Date(item.date));
+      const key = toDateKeyInZone(new Date(item.date));
       workingDays.set(key, item);
     });
 

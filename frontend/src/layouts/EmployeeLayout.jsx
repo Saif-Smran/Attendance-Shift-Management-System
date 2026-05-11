@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 
+import { BRAND_LOGO_SRC } from "../constants/brand";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { useAuthStore } from "../store/authStore";
 
@@ -18,9 +19,11 @@ const EmployeeLayout = () => {
       <header className="border-b border-teal-700/20 bg-teal-600 px-4 py-3 text-white shadow-sm">
         <div className="mx-auto flex max-w-325 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-extrabold text-teal-700">
-              HM
-            </div>
+            <img
+              src={BRAND_LOGO_SRC}
+              alt="Ha-Meem logo"
+              className="h-10 w-10 rounded-full bg-white object-contain p-1"
+            />
             <div>
               <p className="text-sm font-semibold">Ha-Meem Group</p>
               <p className="text-xs text-teal-50">{user?.name || "Employee"}</p>

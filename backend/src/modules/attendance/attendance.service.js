@@ -80,6 +80,51 @@ const getDayBounds = (value) => {
   return { start, end };
 };
 
+const isDateInRange = (value, start, end) => {
+  if (!value || !start || !end) {
+    return false;
+  }
+
+  const valueDate = new Date(value);
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  return valueDate >= startDate && valueDate <= endDate;
+};
+
+const resolveIsRamadan = (rule, date) => {
+  if (!rule?.ramadanActive) {
+    return false;
+  }
+
+  if (rule.ramadanStartDate && rule.ramadanEndDate) {
+    return isDateInRange(date, rule.ramadanStartDate, rule.ramadanEndDate);
+  }
+
+  return true;
+};
+
+const getActiveRule = async (date) => {
+  const activeRule = await prisma.attendanceRule.findFirst({
+    where: {
+      effectiveFrom: {
+        lte: date
+      }
+    },
+    orderBy: {
+      effectiveFrom: "desc"
+    }
+  });
+
+  if (activeRule) {
+    return activeRule;
+  }
+
+  return prisma.attendanceRule.create({
+    data: {}
+  });
+};
+
 const parseMonth = (month) => {
   const raw = String(month || "").trim();
   const monthMatch = /^(\d{4})-(\d{2})$/.exec(raw);
@@ -403,5 +448,83 @@ export const getTodayAttendance = async () => {
   return {
     date: start,
     items
+  };
+};
+
+export const markAbsentForDate = async (dateValue = new Date()) => {
+  const bounds = getDayBounds(dateValue);
+
+  if (!bounds) {
+    throw toError("Invalid date", 400);
+  }
+
+  const { start, end } = bounds;
+
+  const [employees, attendanceRows, activeRule] = await Promise.all([
+    prisma.user.findMany({
+      where: {
+        role: {
+          in: ["EMPLOYEE", "SECURITY"]
+        },
+        status: "ACTIVE"
+      },
+      select: {
+        id: true
+      }
+    }),
+    prisma.attendance.findMany({
+      where: {
+        date: {
+          gte: start,
+          lt: end
+        }
+      },
+      select: {
+        userId: true
+      }
+    }),
+    getActiveRule(start)
+  ]);
+
+  const existingUserIds = new Set(attendanceRows.map((row) => row.userId));
+  const missingUserIds = employees
+    .map((employee) => employee.id)
+    .filter((userId) => !existingUserIds.has(userId));
+
+  if (missingUserIds.length === 0) {
+    return {
+      date: start,
+      totalEligibleUsers: employees.length,
+      alreadyMarked: employees.length,
+      newlyMarked: 0
+    };
+  }
+
+  const isRamadan = resolveIsRamadan(activeRule, start);
+
+  const result = await prisma.attendance.createMany({
+    data: missingUserIds.map((userId) => ({
+      userId,
+      date: start,
+      status: "ABSENT",
+      lateMinutes: 0,
+      earlyExitMinutes: 0,
+      missedHours: 0,
+      otHours: 0,
+      sehriBreakApplied: false,
+      iftarBreakApplied: false,
+      isRamadan,
+      flagged: true,
+      flagReasons: ["ABSENT_AUTO_MARKED"],
+      ruleId: activeRule.id
+    })),
+    skipDuplicates: true
+  });
+
+  return {
+    date: start,
+    totalEligibleUsers: employees.length,
+    alreadyMarked: employees.length - missingUserIds.length,
+    newlyMarked: result.count
   };
 };
